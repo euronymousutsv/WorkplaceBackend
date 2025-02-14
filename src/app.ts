@@ -1,7 +1,9 @@
-import express from 'express';
+import express,{Request,Response} from 'express';
 import pool from './config/db';
 import { Client } from "pg";
 import dotenv from "dotenv";
+import fs from 'fs';
+import path from 'path';
 dotenv.config();
 
 const app = express();
@@ -17,10 +19,36 @@ const db = new Client({
         rejectUnauthorized:false,
     }
   });
+
   db.connect()
   .then(() => console.log("Successfully connected to PostgreSQL RDS"))
   .catch((err) => console.error("Database connection failed:", err));
+  
+  const setSchema = async () => {
+    try {
+        await db.query('SET search_path TO workplacedb, public;');
+        console.log('Search path set to WorkplaceDB schema');
+    } catch (err) {
+        console.error('Error setting search path:', err);
+    }
+};
+setSchema();
+app.get('/employees', async (req: Request, res: Response) => {
+  try {
+    setSchema();
+      // Query data from the employees table in the WorkplaceDB schema
+      const result = await db.query('SELECT * FROM "employee";');
 
+      // Send the result as a response
+      res.json({
+          success: true,
+          employees: result.rows,  // Map the rows data
+      });
+  } catch (err) {
+      console.error('Error fetching employees:', err);
+      res.status(500).json({ success: false, message: 'Error fetching employees', error: err });
+  }
+});
   app.get("/test-db", async (req, res) => {
     try {
       const result = await db.query("SELECT NOW()");
