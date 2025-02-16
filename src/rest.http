@@ -1,1 +1,16 @@
-GET http://localhost:3000/
+#GET http://localhost:3000/
+
+# POST http://localhost:3000/api/auth/login
+# Content-Type: application/json
+
+# {
+#   "email": "cb11@gmail.com",
+#   "password": "staff123"
+# }
+
+GET http://localhost:3000/api/auth/login
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJjYjExQGdtYWlsLmNvbSIsInJvbGUiOjMsImlhdCI6MTczOTcwMTI5NSwiZXhwIjoxNzM5Nzg3Njk1fQ.9SDGI1-KERskdGJYUj1iLa1DrOfq7sXxeDzcZF-BnF4
+
+#eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1dHNhdm5wbjdAZ21haWwuY29tIiwicm9sZSI6MSwiaWF0IjoxNzM5Njk5MzIzLCJleHAiOjE3Mzk3ODU3MjN9._1oq0-4bAadS0khk8XA0ey1K4IzL7sE1A6geIW8paLo
+#eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJiczEyQGdtYWlsLmNvbSIsInJvbGUiOjIsImlhdCI6MTczOTY5OTkwOSwiZXhwIjoxNzM5Nzg2MzA5fQ.Uj0Ar1KCT-OWlKjLiDRjVpLTWRfZdTni1m03iWMjbZI
+#eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJjYjExQGdtYWlsLmNvbSIsInJvbGUiOjMsImlhdCI6MTczOTcwMDA3MywiZXhwIjoxNzM5Nzg2NDczfQ.dvZsF9LoZYaJ0zTPcZce3KDQT0_QFafySyMTYpwfftQ

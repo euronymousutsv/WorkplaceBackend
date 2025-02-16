@@ -13,22 +13,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const db_1 = __importDefault(require("./config/db"));
+const pg_1 = require("pg");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000;
-app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const db = new pg_1.Client({
+    host: process.env.DB_HOST, // RDS endpoint
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: Number(process.env.DB_PORT) || 5432,
+    ssl: {
+        rejectUnauthorized: false,
+    }
+});
+db.connect()
+    .then(() => console.log("Successfully connected to PostgreSQL RDS"))
+    .catch((err) => console.error("Database connection failed:", err));
+app.get("/test-db", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const client = yield db_1.default.connect();
-        const result = yield client.query('SELECT $1::text as message', ['Hello, world!']);
-        const message = result.rows[0].message;
-        client.release();
-        res.send(message);
+        const result = yield db.query("SELECT NOW()");
+        res.json({ success: true, message: "Successfully connected to RDS", time: result.rows[0].now });
     }
     catch (err) {
-        console.error('Error executing query', err);
-        res.status(500).send('Internal Server Error');
+        console.error("Database query failed:", err);
+        res.status(500).json({ success: false, message: "Database query failed", error: err });
     }
 }));
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server is running on port ${port}`);
 });
