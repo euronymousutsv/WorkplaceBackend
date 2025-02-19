@@ -8,7 +8,7 @@ import { AuthenticatedRequest } from './authmiddleware';
  * @param roles - The required roles for the route (supports multiple).
  * @returns Express middleware function.
  */
-export const authorizeRole = (requiredRoles: string[]): RequestHandler => {
+export const authorizeRole = (requiredRoles: string | string[]): RequestHandler => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     // 1️⃣ Ensure the user is authenticated
     if (!req.user) {
@@ -21,7 +21,8 @@ export const authorizeRole = (requiredRoles: string[]): RequestHandler => {
     const userRole = req.user.role?.toLowerCase();
 
     // 3️⃣ Check if the user's role matches any required role
-    const hasAccess = requiredRoles.some(role => role.toLowerCase() === userRole);
+    const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]; // Convert to array
+    const hasAccess = rolesArray.some(role => role.toLowerCase() === userRole);
 
     if (!hasAccess) {
       console.warn(`[AUTH] Forbidden access by ${req.user.email} with role ${req.user.role}`);
