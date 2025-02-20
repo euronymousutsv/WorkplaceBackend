@@ -19,3 +19,26 @@ GET http://localhost:3000/api/employees
 
 ####
 POST http://localhost:3000/api/employees
+
+#### 
+POST http://localhost:3000/api/employees
+Content-Type: application/json
+
+{
+  "FirstName": "Utsav",
+  "LastName": "Neupane",
+  "Email": "utsavneupane123@example.com",
+  "PhoneNumber": "1234567890",
+  "EmploymentStatus": "Active",
+  "RoleID": 1,
+  "Password": "securepassword123"
+}
+
+####
+POST http://localhost:3000/api/employees/login
+Content-Type: application/json
+
+{
+  "Email": "utsavneupane123@example.com",
+  "Password": "$2b$10$wHEiu498HpU7Fz6JmGwz7eTzE5Zu6uMPoIi1dWh6HqsiYvMzU6H06"
+}
