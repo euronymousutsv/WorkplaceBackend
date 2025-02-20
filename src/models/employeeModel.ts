@@ -1,5 +1,6 @@
   import { DataTypes, Model, Optional } from "sequelize";
   import sequelize from "../config/db";
+import Role from "./roleModel";
  export interface EmployeeAttributes {
     EmployeeID: number;
     FirstName: string;
@@ -23,6 +24,8 @@
     public EmploymentStatus!: string;
     public RoleID!: number;
     public Password!: string;
+
+    public readonly Role!:Role;
   }
 
   Employee.init(
@@ -72,5 +75,5 @@
       timestamps: false,
     }
   );
-
+ Employee.belongsTo(Role,{foreignKey:'RoleID',targetKey:'RoleID'})
   export default Employee;

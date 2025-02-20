@@ -1,76 +1,39 @@
-import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
-import pool from '../config/db'; // Import database connection
+import jwt from 'jsonwebtoken';
 
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'defaultsecret';
-
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret';
 
 export interface AuthenticatedRequest extends Request {
-  user?: { id: number; email: string; role: string };
+  user?: { EmployeeID: number; Email: string; RoleID: number }; // Add fields from the JWT
 }
 
-//Middleware to authenticate JWT tokens
-export const authenticateJWT = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.header('Authorization');
-  const token = req.header('Authorization')?.split(' ')[1];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authorization denied. Missing or malformed token.' });
+    return
+  }
+
+  const token = authHeader.split(' ')[1]; // Get the token part from the Bearer header
 
   if (!token) {
-    res.status(401).json({ message: 'Access denied, no token provided' });
-    return;
+    res.status(401).json({ error: 'Authorization denied. Missing token.' });
+    return
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; role: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { EmployeeID: number; Email: string; RoleID: number };
 
-    // Query user from database
-    const userQuery = await pool.query(
-      `SELECT e."EmployeeID", e."Email", r."RoleName"
-       FROM workplacedb."employee" e
-       JOIN workplacedb."Role" r ON e."RoleID" = r."RoleID"
-       WHERE e."EmployeeID" = $1`,
-      [decoded.id]
-    );
-    
-
-    if (userQuery.rows.length === 0) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    const user = userQuery.rows[0];
-
-    // Attach user to request object
+    // Attach decoded user data to the request object
     req.user = {
-      id: user.EmployeeID,
-      email: user.Email,
-      role: user.RoleName,
+      EmployeeID: decoded.EmployeeID,
+      Email: decoded.Email,
+      RoleID: decoded.RoleID
     };
 
-    next();
-  } catch (err) {
-    console.error('Token verification failed:', err);
-    res.status(403).json({ message: 'Invalid token' });
-    if (err instanceof Error) {
-      console.error('Token error:', err.message);
-    } else {
-      console.error('Token error:', err);
-    }
-
+    next(); // Continue to the next middleware or route handler
+  } catch (error) {
+    res.status(401).json({ error: 'Token is not valid' });
+    return
   }
 };
-
-// Function: Generate JWT Token
-export const generateToken = (id: number, email: string, role: string): string => {
-  return jwt.sign(
-    { id, email, role },
-    JWT_SECRET,
-    { expiresIn: '1d' } // Token expires in 1 day
-  );
-};
-
-// NOTE: All database integration points are marked with TODO comments for easy replacement later.
-
-

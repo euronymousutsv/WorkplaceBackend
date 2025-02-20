@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { error } from "console";
+
+
 export const getAllEmployees = async (req: Request, res: Response) => {
     try {
       const employees = await Employee.findAll();
@@ -76,9 +78,7 @@ export const loginEmployee = async (req:Request, res:Response):Promise<void>=>{
          res.status(401).json({error:"Invalid Credentials"})
       }
       else{
-        const token=jwt.sign({
-          EmployeeID:employee.EmployeeID, Email:employee.Email
-        },process.env.JWT_SECRET as string,{expiresIn:'2h'});
+        const token=jwt.sign({EmployeeID:employee.EmployeeID, Email:employee.Email, RoleID:employee.RoleID},process.env.JWT_SECRET as string,{expiresIn:'2h'});
         res.json({token});
       }
     }

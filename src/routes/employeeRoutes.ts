@@ -5,10 +5,11 @@ import {
   loginEmployee,
 
 } from "../controllers/employeeController";
+import {authMiddleware} from "../middleware/authmiddleware";
 
 const router = express.Router();
 router.post('/login', loginEmployee);
-router.get("/", getAllEmployees);
+router.get("/",authMiddleware, getAllEmployees);
 router.post("/", createEmployee);
 
 export default router;

@@ -16,7 +16,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiO
 #eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJjYjExQGdtYWlsLmNvbSIsInJvbGUiOjMsImlhdCI6MTczOTcwMDA3MywiZXhwIjoxNzM5Nzg2NDczfQ.dvZsF9LoZYaJ0zTPcZce3KDQT0_QFafySyMTYpwfftQ
 ####
 GET http://localhost:3000/api/employees
-
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFbXBsb3llZUlEIjoxNSwiRW1haWwiOiJ1dHNhdm5ldXBhbmUxMjNAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDAwNjQ4ODMsImV4cCI6MTc0MDA3MjA4M30.WqNBN-eHiNb4UohQFcVSQ_tFs-OqGMmmTw72WKUg-YY
 ####
 POST http://localhost:3000/api/employees
 
@@ -40,5 +40,4 @@ Content-Type: application/json
 
 {
   "Email": "utsavneupane123@example.com",
-  "Password": "$2b$10$wHEiu498HpU7Fz6JmGwz7eTzE5Zu6uMPoIi1dWh6HqsiYvMzU6H06"
-}
+  "Password":"securepassword123"}
