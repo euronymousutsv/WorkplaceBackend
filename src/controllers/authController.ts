@@ -2,12 +2,17 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import ApiError from "../utils/ApiError";
 import {
+  checkPassword,
   validateEmail,
   validatePasswordSecurity,
   validatePhoneNumber,
 } from "../utils/helper";
 import ApiResponse, { StatusCode } from "../utils/ApiResponse";
 import Employee from "../models/employeeModel";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/jwtGenerater";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -118,4 +123,112 @@ export const registerUser = async (
       phoneNumber,
     })
   );
+};
+
+export const loginUser = async (
+  req: Request<{}, {}, { email: string; password: string }>,
+  res: Response
+): Promise<void> => {
+  const { email, password } = req.body;
+  // check if the email is an valid email
+  try {
+    if (!email || !password) {
+      // returns true only when the email is a valid email
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Email or password cannot be empty!"
+      );
+    }
+    const lowerCasedEmail = email.toLowerCase();
+
+    if (lowerCasedEmail) {
+      // returns true only when the email is a valid email
+      if (!validateEmail(lowerCasedEmail)) {
+        throw new ApiError(
+          StatusCode.BAD_REQUEST,
+          {},
+          "Input email is not valid"
+        );
+      }
+    }
+
+    // search for the user using email in the database
+    const searchedUser = await Employee.findOne({
+      where: { Email: lowerCasedEmail },
+    });
+
+    if (!searchedUser) {
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "User Not Found");
+    }
+
+    // compare hashed password and the user input password for that user
+    const isPasswordValid = await checkPassword(
+      password,
+      searchedUser.Password
+    );
+
+    if (!isPasswordValid) {
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Invalid Credencials");
+    }
+
+    // if the password and hashed password match, then generate an access and refresh token
+
+    const accessToken = generateAccessToken(
+      searchedUser.EmployeeID.toString(),
+      searchedUser.RoleID
+    );
+
+    // generate refresh token returns an array
+    // storing that array into a new constant variable
+    const genetated = generateRefreshToken(searchedUser.EmployeeID.toString());
+    // refresh token is returned at index 0 & jti at 1.
+    const refreshToken = genetated[0];
+
+    // const jti = genetated[1];
+    // a token table will be created to store a jti which will be used to validate a refresh token
+
+    // const tokenTable = refreshToken.create({
+    //   user: searchedUser,
+    //   jti: jti,
+    // });
+
+    // tokenTable.save();
+
+    // if (!tokenTable) {
+    //   throw new ApiError(
+    //     StatusCode.INTERNAL_SERVER_ERROR,
+    //     {},
+    //     "Unable to store token in the db."
+    //   );
+    // }
+
+    res.status(StatusCode.OK).json(
+      new ApiResponse(
+        StatusCode.OK,
+        {
+          accessToken,
+          refreshToken,
+        },
+        "User Logged In Successfully"
+      )
+    );
+  } catch (error) {
+    if (error instanceof ApiError)
+      res
+        .status(error.statusCode)
+        .json(
+          new ApiError(
+            error.statusCode,
+            {},
+            error.message || "Something is not right"
+          )
+        );
+    else {
+      // Handle unexpected errors
+      console.error(error); // Log the error for debugging
+      res.status(500).json(new ApiError(500, error, "Internal Server Error"));
+    }
+    return;
+  }
 };
