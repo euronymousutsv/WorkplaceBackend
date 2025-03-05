@@ -283,6 +283,7 @@ export const verificationCode = async (
       console.log("OTP sent successfully:", message.sid);
 
       const cacheSuccess = otpCache.set(phoneNumber, verificationCode);
+      console.log(phoneNumber);
 
       if (!cacheSuccess) {
         throw new ApiError(500, {}, "Error storing Verification Code");
@@ -304,19 +305,20 @@ export const verificationCode = async (
 
 // this will validate the code
 export const validateVerificationCode = async (
-  req: Request<{}, {}, { code: string; phone: string }>,
+  req: Request<{}, {}, { code: string; phoneNumber: string }>,
   res: Response
 ): Promise<void> => {
   try {
-    const { code, phone } = req.body;
+    const { code, phoneNumber } = req.body;
 
-    if (!code || !phone)
+    if (!code || !phoneNumber)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         {},
         "Missing verification code or Phone."
       );
-    const savedCode: string = otpCache.get(phone) || "";
+    const savedCode: string = otpCache.get(phoneNumber) || "";
+    console.log(savedCode);
 
     if (savedCode.toLowerCase() !== code.toLowerCase())
       throw new ApiError(
@@ -325,7 +327,7 @@ export const validateVerificationCode = async (
         "Incorrect Verification Code."
       );
     else {
-      otpCache.del(phone);
+      otpCache.del(phoneNumber);
       res
         .status(StatusCode.OK)
         .json(new ApiResponse(StatusCode.OK, {}, "Verified successfully"));
