@@ -3,7 +3,7 @@ import Employee from "../models/employeeModel";
 
 const syncDatabase = async () => {
   try {
-    await sequelize.sync({ alter: true }); // Use `force: true` only in development
+    await sequelize.sync({ alter: true, force: true}); // Use `force: true` only in development
     console.log("Database synchronized successfully!");
   } catch (error) {
     console.error("Error syncing database:", error);
@@ -12,4 +12,4 @@ const syncDatabase = async () => {
   }
 };
 
-syncDatabase();
+export default syncDatabase;

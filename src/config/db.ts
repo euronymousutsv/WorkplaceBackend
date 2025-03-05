@@ -25,6 +25,7 @@ const sequelize = new Sequelize(
   
   
 });
+
 const dbConnect = async () =>{
   try{ await sequelize.authenticate();
     console.log("Connected to the database successfully");

@@ -1,3 +1,5 @@
+import syncDatabase from "./config/sync";
+
 require('dotenv').config();
 
 import express from "express";
@@ -18,6 +20,7 @@ app.use("/api/employees", employeeRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
+syncDatabase();
 dbConnect().then(() => {
   // Start the Express server if the database connection is successful
   app.listen(PORT, () => {

@@ -34,7 +34,7 @@ export const getAllEmployees = async (req: Request, res: Response) => {
  // Adjust the path to your Employee model
 
 export const createEmployee = async (req: Request<{}, {}, EmployeeAttributes>, res: Response): Promise<void> => {
-  const { FirstName, LastName, Email, PhoneNumber, EmploymentStatus, RoleID, Password } = req.body;
+  const { FirstName, LastName, Email, PhoneNumber, EmploymentStatus, RoleID, Password,assigned_office_id } = req.body;
 
   try {
     // Check if the employee email already exists
@@ -52,7 +52,8 @@ export const createEmployee = async (req: Request<{}, {}, EmployeeAttributes>, r
       PhoneNumber,
       EmploymentStatus,
       RoleID,
-      Password:hashedPassword,
+      Password: hashedPassword,
+      assigned_office_id,
     });
 
     // Send the success response, no need to return the res object explicitly
@@ -78,7 +79,7 @@ export const loginEmployee = async (req:Request, res:Response):Promise<void>=>{
          res.status(401).json({error:"Invalid Credentials"})
       }
       else{
-        const token=jwt.sign({EmployeeID:employee.EmployeeID, Email:employee.Email, RoleID:employee.RoleID},process.env.JWT_SECRET as string,{expiresIn:'2h'});
+        const token=jwt.sign({EmployeeID:employee.id, Email:employee.Email, RoleID:employee.RoleID},process.env.JWT_SECRET as string,{expiresIn:'2h'});
         res.json({token});
       }
     }
