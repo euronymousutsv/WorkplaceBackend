@@ -29,6 +29,9 @@ interface ReqUserData {
 // this will hold the verification code for 5 mins for each user.
 // which will then be deleted automatically.
 const otpCache = new NodeCache({ stdTTL: 300 });
+const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
+const authToken = process.env.TWILIO_AUTH_TOKEN || "";
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || "";
 
 export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
@@ -256,9 +259,6 @@ export const verificationCode = async (
     if (!valid) throw new ApiError(400, {}, "Invalid Phone Number");
     // Ensure email is provided
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
-    const authToken = process.env.TWILIO_AUTH_TOKEN || "";
-    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || "";
     const client = twilio(accountSid, authToken);
 
     // Generate a 6-character verification code
@@ -276,6 +276,10 @@ export const verificationCode = async (
         to: phoneNumber,
       });
 
+      if (!message) {
+        throw new ApiError(500, {}, "Error sending Verification Code");
+      }
+
       console.log("OTP sent successfully:", message.sid);
 
       const cacheSuccess = otpCache.set(phoneNumber, verificationCode);
@@ -286,6 +290,7 @@ export const verificationCode = async (
 
       console.log("OTP sent successfully:");
     };
+    sendVerificationPhone(phoneNumber);
 
     res.status(200).json(new ApiResponse(200, {}, "OTP sent successfully"));
   } catch (error) {
