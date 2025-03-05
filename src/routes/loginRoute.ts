@@ -2,7 +2,12 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 // import { generateToken } from '../middleware/authmiddleware';
 import pool from "../config/db";
-import { loginUser, registerUser } from "../controllers/authController";
+import {
+  loginUser,
+  registerUser,
+  validateVerificationCode,
+  verificationCode,
+} from "../controllers/authController";
 
 const router = express.Router();
 // Test route to verify registration
@@ -56,6 +61,8 @@ router.get("/", (req: Request, res: Response) => {
 
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
+router.route("/sendVerificationCode").post(verificationCode);
+router.route("/validateVerificationCode").post(validateVerificationCode);
 // router.route("/refreshToken").post(refreshToken);
 
 export default router;

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import twilio from "twilio";
 import ApiError from "../utils/ApiError";
 import {
   checkPassword,
@@ -13,6 +14,8 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/jwtGenerater";
+import { randomBytes } from "crypto";
+import NodeCache from "node-cache";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -22,6 +25,10 @@ interface ReqUserData {
   password: string;
   phoneNumber: string;
 }
+
+// this will hold the verification code for 5 mins for each user.
+// which will then be deleted automatically.
+const otpCache = new NodeCache({ stdTTL: 300 });
 
 export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
@@ -224,6 +231,102 @@ export const loginUser = async (
             error.message || "Something is not right"
           )
         );
+    else {
+      // Handle unexpected errors
+      console.error(error); // Log the error for debugging
+      res.status(500).json(new ApiError(500, error, "Internal Server Error"));
+    }
+    return;
+  }
+};
+
+// send a verification code
+// This portion needs review
+export const verificationCode = async (
+  req: Request<{}, {}, { phoneNumber: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+      throw new ApiError(400, {}, "Phone Number is required!");
+    }
+    const valid = validatePhoneNumber(phoneNumber);
+    if (!valid) throw new ApiError(400, {}, "Invalid Phone Number");
+    // Ensure email is provided
+
+    const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
+    const authToken = process.env.TWILIO_AUTH_TOKEN || "";
+    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || "";
+    const client = twilio(accountSid, authToken);
+
+    // Generate a 6-character verification code
+    const generateVerificationCode = (): string =>
+      randomBytes(3).toString("hex").toUpperCase().slice(0, 6);
+
+    // Send verification Code
+    const sendVerificationPhone = async (toPhone: string): Promise<void> => {
+      const verificationCode = generateVerificationCode();
+
+      // Send SMS using Twilio
+      const message = await client.messages.create({
+        body: `Your verification code is: ${generateVerificationCode()}`,
+        from: twilioPhoneNumber,
+        to: phoneNumber,
+      });
+
+      console.log("OTP sent successfully:", message.sid);
+
+      const cacheSuccess = otpCache.set(phoneNumber, verificationCode);
+
+      if (!cacheSuccess) {
+        throw new ApiError(500, {}, "Error storing Verification Code");
+      }
+
+      console.log("OTP sent successfully:");
+    };
+
+    res.status(200).json(new ApiResponse(200, {}, "OTP sent successfully"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res.status(500).json({ success: false, error: "Failed to send OTP" });
+    }
+  }
+};
+
+// this will validate the code
+export const validateVerificationCode = async (
+  req: Request<{}, {}, { code: string; phone: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { code, phone } = req.body;
+
+    if (!code || !phone)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Missing verification code or Phone."
+      );
+    const savedCode: string = otpCache.get(phone) || "";
+
+    if (savedCode.toLowerCase() !== code.toLowerCase())
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Incorrect Verification Code."
+      );
+    else {
+      otpCache.del(phone);
+      res
+        .status(StatusCode.OK)
+        .json(new ApiResponse(StatusCode.OK, {}, "Verified successfully"));
+    }
+  } catch (error) {
+    if (error instanceof ApiError) res.status(error.statusCode).json(error);
     else {
       // Handle unexpected errors
       console.error(error); // Log the error for debugging
