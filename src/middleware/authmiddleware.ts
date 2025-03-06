@@ -8,12 +8,14 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  
   const authHeader = req.header('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  console.log(authHeader)
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
     res.status(401).json({ error: 'Authorization denied. Missing or malformed token.' });
     return
   }
-
+console.log(authHeader)
   const token = authHeader.split(' ')[1]; // Get the token part from the Bearer header
 
   if (!token) {

@@ -1,86 +1,86 @@
     import { DataTypes, Model, Optional } from "sequelize";
     import sequelize from "../config/db";
-import Role from "./roleModel";
-  import { OfficeLocation } from "./officeLocation";
-  export interface EmployeeAttributes {
-      id: number;
-      FirstName: string;
-      LastName: string;
-      Email: string;
-      PhoneNumber: string;
-      EmploymentStatus: string;
-      RoleID: number;
-    Password: string;
-    assigned_office_id?: string;
+import { Roster } from "./rosterModel";
+import { AttendanceEvent } from "./attendancModel";
+import { Payroll } from "./payrollModel";
+   
+     interface EmployeeAttributes {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email: string;
+      googleId?: string;
+      phoneNumber?: string;
+      employmentStatus: "Active"|"Inactive";
+      role: "admin"|"employee";
+      password?: string;
+
     }
 
     // Optional fields when creating a new Employee
-    export interface EmployeeCreationAttributes extends Optional<EmployeeAttributes, "id"> {}
+    interface EmployeeCreationAttributes extends Optional<EmployeeAttributes, "id"|"firstName"|"lastName"|"employmentStatus"|"email"|"googleId"|"password"|"phoneNumber"|"role"> {}
 
     class Employee extends Model<EmployeeAttributes, EmployeeCreationAttributes> implements EmployeeAttributes {
-      public id!: number;
-      public FirstName!: string;
-      public LastName!: string;
-      public Email!: string;
-      public PhoneNumber!: string;
-      public EmploymentStatus!: string;
-      public RoleID!: number;
-      public Password!: string;
-      public assigned_office_id?: string;
-
-      public readonly Role!:Role;
+      public id!: string;
+      public firstName?: string;
+      public lastName?: string;
+      public email!: string;
+      public googleId?: string;
+      public phoneNumber?: string;
+      public employmentStatus!: "Active"|"Inactive";
+      public role!: "admin"|"employee";
+      public password?: string;
+    
     }
 
     Employee.init(
       {
         id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
           primaryKey: true,
-        },FirstName: {
+        },firstName: {
           type: DataTypes.STRING(50),
-          allowNull: false,
-        },LastName: {
+          allowNull: true,
+        },lastName: {
           type: DataTypes.STRING(50),
-          allowNull: false,
-        },Email: {
+          allowNull: true,
+        },email: {
           type: DataTypes.STRING(100),
           allowNull: false,
           unique: true,
           validate: {
             isEmail: true,
           },
-        },PhoneNumber: {
-          type: DataTypes.STRING(15),
+        },phoneNumber: {
+          type: DataTypes.STRING,
           allowNull: false,
-        },EmploymentStatus: {
-          type: DataTypes.STRING(20),
+        },employmentStatus: {
+          type: DataTypes.ENUM("active", "inActive"),
           allowNull: false,
+          defaultValue:"inActive",
         },
-        RoleID: {
-          type: DataTypes.INTEGER,
+        role: {
+          type: DataTypes.ENUM("admin", "employee"),
           allowNull: false,
+          defaultValue: "employee",
         },
-        Password: {
+        password: {
           type: DataTypes.STRING(255),
-          allowNull: false,
-        },
-        assigned_office_id: {
-          type: DataTypes.UUID,
           allowNull: true,
-          references: {
-            model: OfficeLocation,
-            key:"id",
-          }
-        }
+        },
+        
       },
       {
         sequelize,
+        modelName: "Employee",
         tableName: "employee",
         schema: "workplacedb", // Use the correct schema
         timestamps: false,
       }
     );
-  Employee.belongsTo(Role, { foreignKey: 'RoleID', targetKey: 'RoleID' })
-  Employee.belongsTo(OfficeLocation, { foreignKey: "assigned_office_id", as: "office" });
-    export default Employee;
+
+    // Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
+    // Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+    // Employee.hasMany(Payroll, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+    export  {Employee, EmployeeAttributes};

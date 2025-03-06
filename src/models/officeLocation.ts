@@ -1,12 +1,13 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+import { Roster } from "./rosterModel";
 
 // Define attributes for the OfficeLocation model
 interface OfficeLocationAttributes {
   id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
   radius?: number; // Optional field with default value
 }
 
@@ -16,9 +17,9 @@ interface OfficeLocationCreationAttributes extends Optional<OfficeLocationAttrib
 class OfficeLocation extends Model<OfficeLocationAttributes, OfficeLocationCreationAttributes> 
   implements OfficeLocationAttributes {
   public id!: string;
-  public name!: string;
-  public latitude!: number;
-  public longitude!: number;
+  public name?: string;
+  public latitude?: number;
+  public longitude?: number;
   public radius?: number;
 }
 
@@ -54,5 +55,5 @@ OfficeLocation.init(
     timestamps: false,
   }
 );
-
+// OfficeLocation.hasMany(Roster,{foreignKey:"officeId"})s
 export { OfficeLocation };
