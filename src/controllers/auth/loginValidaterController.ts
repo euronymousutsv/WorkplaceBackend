@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import ApiError from "../../utils/ApiError.js";
-import ApiResponse, { StatusCode } from "../../utils/ApiResponse.js";
+import ApiError from "../../utils/apiError.js";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse.js";
 import {
   generateAccessToken,
   generateRefreshToken,

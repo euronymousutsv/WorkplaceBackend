@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import twilio from "twilio";
-import ApiError from "../utils/ApiError";
+import ApiError from "../utils/apiError";
 import {
   checkPassword,
   validateEmail,
   validatePasswordSecurity,
   validatePhoneNumber,
 } from "../utils/helper";
-import ApiResponse, { StatusCode } from "../utils/ApiResponse";
+import ApiResponse, { StatusCode } from "../utils/apiResponse";
 import Employee from "../models/employeeModel";
 import {
   generateAccessToken,
