@@ -58,7 +58,7 @@ class Roster extends Model <RosterAttributes, RosterCreationAttributes> implemen
   );
 //   Roster.belongsTo(Employee,{foreignKey:'employeeId'})
 //   Roster.belongsTo(OfficeLocation,{foreignKey:'officeId'})
-  export { Roster };
+  export { Roster, RosterAttributes };
 
   
 

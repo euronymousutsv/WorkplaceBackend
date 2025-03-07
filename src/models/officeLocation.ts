@@ -56,4 +56,4 @@ OfficeLocation.init(
   }
 );
 // OfficeLocation.hasMany(Roster,{foreignKey:"officeId"})s
-export { OfficeLocation };
+export { OfficeLocation, OfficeLocationAttributes };

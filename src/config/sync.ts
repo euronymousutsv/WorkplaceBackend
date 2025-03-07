@@ -1,10 +1,10 @@
 import sequelize from "../config/db";
 
 import {Employee} from '../models/employeeModel';
-import {Roster} from '../models/rosterModel';
 import {Payroll} from '../models/payrollModel';
 import {AttendanceEvent} from '../models/attendancModel';
 import {OfficeLocation} from '../models/officeLocation';
+import {Roster} from '../models/rosterModel';
 import '../models/association';
 const syncDatabase = async () => {
   try {
@@ -23,10 +23,10 @@ const syncDatabase = async () => {
    
     console.log("🔄 Recreating tables...");
     await Employee.sync({ alter: true });
-    await OfficeLocation.sync({ alter: true });
     await Roster.sync({ alter: true });
     await Payroll.sync({ alter: true });
     await AttendanceEvent.sync({ alter: true });
+    await OfficeLocation.sync({ alter: true });
 
     console.log("✅ Database synced successfully!");
   } catch (error) {

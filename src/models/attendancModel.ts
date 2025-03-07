@@ -62,4 +62,4 @@ AttendanceEvent.init(
 
 // AttendanceEvent.belongsTo(Employee,{foreignKey:'employeeId'})
 
-export { AttendanceEvent };
+export { AttendanceEvent, AttendanceEventAttributes };
