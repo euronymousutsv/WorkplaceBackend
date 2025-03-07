@@ -12,7 +12,7 @@ import { Payroll } from "./payrollModel";
       googleId?: string;
       phoneNumber?: string;
       employmentStatus: "Active"|"Inactive";
-      role: "admin"|"employee";
+      role: "admin"|"employee"|"manager";
       password?: string;
 
     }
@@ -28,11 +28,20 @@ import { Payroll } from "./payrollModel";
       public googleId?: string;
       public phoneNumber?: string;
       public employmentStatus!: "Active"|"Inactive";
-      public role!: "admin"|"employee";
+      public role!: "admin"|"employee"|"manager";
       public password?: string;
     
     }
+    const checkEnumExists = async()=>{
 
+      const [results] = await sequelize.query(`SELECT 1 FROM pg_type WHERE typname = 'enum_employee_role';`);
+      return results.length>0;
+    }
+    (async ()=> {const enumExists = await checkEnumExists();
+      if (!enumExists){
+        await sequelize.query("CREATE TYPE enum_employee_role AS ENUM ('admin','employee','manager');")
+      }
+    })
     Employee.init(
       {
         id: {
@@ -61,7 +70,7 @@ import { Payroll } from "./payrollModel";
           defaultValue:"inActive",
         },
         role: {
-          type: DataTypes.ENUM("admin", "employee"),
+          type: DataTypes.ENUM("admin", "employee", "manager"),
           allowNull: false,
           defaultValue: "employee",
         },
