@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import employeeRoutes from "./routes/employeeRoutes";
+import rosterRoutes from "./routes/rosterRoutes";
 import sequelize from "./config/db";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use("/api/employees", employeeRoutes);
+app.use("/api/roster",rosterRoutes)
 
 // Start Server
 const PORT = process.env.PORT || 5000;

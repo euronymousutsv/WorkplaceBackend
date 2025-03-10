@@ -14,14 +14,14 @@ const syncDatabase = async () => {
     
 
 
-    console.log("🛠 Dropping foreign key constraints to prevent dependency errors...");
-    await sequelize.query('DROP SCHEMA IF EXISTS workplacedb CASCADE;'); // ✅ Drops all tables and foreign key constraints
+    //console.log("🛠 Dropping foreign key constraints to prevent dependency errors...");
+   // await sequelize.query('DROP SCHEMA IF EXISTS workplacedb CASCADE;'); // ✅ Drops all tables and foreign key constraints
 
-    console.log("🛠 Recreating schema...");
-    sequelize.query('CREATE SCHEMA workplacedb;'); // ✅ Ensures schema is created before tables
+   // console.log("🛠 Recreating schema...");
+   // sequelize.query('CREATE SCHEMA workplacedb;'); // ✅ Ensures schema is created before tables
 
    
-    console.log("🔄 Recreating tables...");
+  //  console.log("🔄 Recreating tables...");
     await Employee.sync({ alter: true });
     await Payroll.sync({ alter: true });
     await AttendanceEvent.sync({ alter: true });

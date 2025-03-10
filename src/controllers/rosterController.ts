@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { Roster } from "../models/rosterModel";
+import { Roster, RosterAttributes } from "../models/rosterModel";
 import { Employee } from "../models/employeeModel";
 import { OfficeLocation } from "../models/officeLocation";
 import { Op } from "sequelize";
 import sequelize from "../config/db"
 
 // ✅ **1. Create a Shift**
-export const createShift = async (req: Request, res: Response) => {
+const createShift = async (req: Request<{}, {}, RosterAttributes>, res: Response): Promise<void> => {
   const { employeeId, officeId, startTime, endTime } = req.body;
 
   try {
@@ -14,60 +14,67 @@ export const createShift = async (req: Request, res: Response) => {
     const employee = await Employee.findByPk(employeeId);
     const office = await OfficeLocation.findByPk(officeId);
     if (!employee || !office) {
-      return res.status(404).json({ error: "Employee or Office not found" });
+      res.status(404).json({ error: "Employee or Office not found" });
+      return;
     }
 
     // Create the shift
     const shift = await Roster.create({ employeeId, officeId, startTime, endTime });
 
-    return res.status(201).json({ message: "Shift created successfully", shift });
+    res.status(201).json({ message: "Shift created successfully", shift });
+    return;
   } catch (error) {
     console.error("Error creating shift:", error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
+    return;
   }
 };
 
 // ✅ **2. Update a Shift**
-export const updateShift = async (req: Request, res: Response) => {
-  const { id } = req.params;
+ const updateShift = async (req: Request<{id:string}, {}, RosterAttributes>, res: Response): Promise<void> => {
+   const { id } = req.params;
   const { employeeId, officeId, startTime, endTime } = req.body;
 
   try {
     const shift = await Roster.findByPk(id);
     if (!shift) {
-      return res.status(404).json({ error: "Shift not found" });
+      res.status(404).json({ error: "Shift not found" });
+      return;
     }
 
     await shift.update({ employeeId, officeId, startTime, endTime });
 
-    return res.status(200).json({ message: "Shift updated successfully", shift });
+     res.status(200).json({ message: "Shift updated successfully", shift });
   } catch (error) {
     console.error("Error updating shift:", error);
-    return res.status(500).json({ error: "Server error" });
+     res.status(500).json({ error: "Server error" });
   }
 };
 
 // ✅ **3. Delete a Shift**
-export const deleteShift = async (req: Request, res: Response) => {
+ const deleteShift = async (req: Request<{id:string}, {}, RosterAttributes>, res: Response) => {
   const { id } = req.params;
 
   try {
     const shift = await Roster.findByPk(id);
     if (!shift) {
-      return res.status(404).json({ error: "Shift not found" });
+      res.status(404).json({ error: "Shift not found" });
+      return
     }
 
     await shift.destroy();
 
-    return res.status(200).json({ message: "Shift deleted successfully" });
+    res.status(200).json({ message: "Shift deleted successfully" });
+    return
   } catch (error) {
     console.error("Error deleting shift:", error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
+    return;
   }
 };
 
 // ✅ **4. Get All Shifts (Optional: Filter by Employee, Office, or Date Range)**
-export const getShifts = async (req: Request, res: Response) => {
+ const getShifts = async (req: Request<{}, {}, RosterAttributes>, res: Response) => {
   const { employeeId, officeId, startDate, endDate } = req.query;
 
   const filters: any = {};
@@ -83,15 +90,17 @@ export const getShifts = async (req: Request, res: Response) => {
       include: [{ model: Employee }, { model: OfficeLocation }],
     });
 
-    return res.status(200).json({ shifts });
+    res.status(200).json({ shifts });
+    return;
   } catch (error) {
     console.error("Error fetching shifts:", error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
+    return;
   }
 };
 
 // ✅ **5. Auto-Assign Employees to Available Shifts**
-export const autoAssignShifts = async (req: Request, res: Response) => {
+ const autoAssignShifts = async (req: Request<{}, {}, RosterAttributes>, res: Response) => {
   const { officeId, startTime, endTime } = req.body;
 
   try {
@@ -107,7 +116,8 @@ export const autoAssignShifts = async (req: Request, res: Response) => {
     });
 
     if (availableEmployees.length === 0) {
-      return res.status(400).json({ error: "No available employees for this shift" });
+      res.status(400).json({ error: "No available employees for this shift" });
+      return;
     }
 
     const assignedEmployee = availableEmployees[0];
@@ -120,9 +130,14 @@ export const autoAssignShifts = async (req: Request, res: Response) => {
       endTime,
     });
 
-    return res.status(201).json({ message: "Shift auto-assigned successfully", shift });
+    res.status(201).json({ message: "Shift auto-assigned successfully", shift });
+    return
   } catch (error) {
     console.error("Error auto-assigning shifts:", error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
+    return
+
   }
 };
+
+export {createShift, deleteShift, autoAssignShifts, getShifts, updateShift}
