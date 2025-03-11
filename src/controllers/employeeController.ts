@@ -1,11 +1,11 @@
-import Employee, { EmployeeAttributes } from "../models/employeeModel";
+import { Employee, EmployeeAttributes } from "../models/employeeModel";
 import { Request, Response } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { error } from "console";
-import ApiError from "../utils/apiError";
-import { StatusCode } from "../utils/apiResponse";
+import ApiError from "../utils/ApiError";
+import { StatusCode } from "../utils/ApiResponse";
 
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {
@@ -39,13 +39,13 @@ export const createEmployee = async (
   res: Response
 ): Promise<void> => {
   const {
-    FirstName,
-    LastName,
-    Email,
-    PhoneNumber,
-    EmploymentStatus,
-    RoleID,
-    Password,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    employmentStatus,
+    role,
+    password,
   } = req.body;
 
   try {
@@ -54,16 +54,16 @@ export const createEmployee = async (
     if (existingEmployee) {
       res.status(400).json({ error: "Email already exists" });
     } else {
-      const hashedPassword = await bcrypt.hash(Password, 10);
+      const hashedPassword = await bcrypt.hash(password!, 10);
       // Create a new Employee instance and save it to the database
       const newEmployee = await Employee.create({
-        FirstName,
-        LastName,
-        Email,
-        PhoneNumber,
-        EmploymentStatus,
-        RoleID,
-        Password: hashedPassword,
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        employmentStatus,
+        role,
+        password: hashedPassword,
       });
 
       // Send the success response, no need to return the res object explicitly
@@ -87,19 +87,19 @@ export const loginEmployee = async (
   const { Email, Password } = req.body;
 
   try {
-    const employee = await Employee.findOne({ where: { Email } });
+    const employee = await Employee.findOne({ where: { email: Email } });
     if (!employee) {
       res.status(401).json({ error: "Invalid credentials" });
     } else {
-      const isMatch = await bcrypt.compare(Password, employee.Password);
+      const isMatch = await bcrypt.compare(Password, employee.password!);
       if (!isMatch) {
         res.status(401).json({ error: "Invalid Credentials" });
       } else {
         const token = jwt.sign(
           {
-            EmployeeID: employee.EmployeeID,
-            Email: employee.Email,
-            RoleID: employee.RoleID,
+            EmployeeID: employee.id,
+            Email: employee.email,
+            RoleID: employee.id,
           },
           process.env.JWT_SECRET as string,
           { expiresIn: "2h" }

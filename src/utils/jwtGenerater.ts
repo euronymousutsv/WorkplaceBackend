@@ -16,7 +16,7 @@ export interface RefreshTokenPayload {
   jti: string;
 }
 
-export const generateAccessToken = (userId: string, role: number): string => {
+export const generateAccessToken = (userId: string, role: string): string => {
   const payload: AccessTokenPayload = { userId, role };
   return jwt.sign(payload, ACCESS_TOKEN_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRY,

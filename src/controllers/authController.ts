@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import twilio from "twilio";
-import ApiError from "../utils/apiError";
+import ApiError from "../utils/ApiError";
 import {
   checkPassword,
   validateEmail,
   validatePasswordSecurity,
   validatePhoneNumber,
 } from "../utils/helper";
-import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import Employee from "../models/employeeModel";
+import ApiResponse, { StatusCode } from "../utils/ApiResponse";
+import { Employee } from "../models/employeeModel";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -74,7 +74,7 @@ export const registerUser = async (
 
     // check if the user with this email already exists
     const checkUserEmail = await Employee.findOne({
-      where: { Email: email },
+      where: { email: email },
     });
     if (checkUserEmail != null) {
       throw new ApiError(StatusCode.CONFLICT, {}, "User already Registered");
@@ -82,7 +82,7 @@ export const registerUser = async (
 
     // check if the user with this phone Number already exists
     const checkUserPhone = await Employee.findOne({
-      where: { PhoneNumber: phoneNumber },
+      where: { phoneNumber: phoneNumber },
     });
     if (checkUserPhone != null) {
       console.log(checkUserPhone);
@@ -91,13 +91,12 @@ export const registerUser = async (
 
     // create a user / employee
     const newUser = Employee.create({
-      FirstName: firstName,
-      LastName: lastName,
-      Email: email,
-      Password: hashedPassword,
-      PhoneNumber: phoneNumber.toString(),
-      EmploymentStatus: "Active",
-      RoleID: 1,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: hashedPassword,
+      phoneNumber: phoneNumber.toString(),
+      employmentStatus: "Active",
     });
 
     const savedUser = (await newUser).save();
@@ -165,7 +164,7 @@ export const loginUser = async (
 
     // search for the user using email in the database
     const searchedUser = await Employee.findOne({
-      where: { Email: lowerCasedEmail },
+      where: { email: lowerCasedEmail },
     });
 
     if (!searchedUser) {
@@ -175,7 +174,7 @@ export const loginUser = async (
     // compare hashed password and the user input password for that user
     const isPasswordValid = await checkPassword(
       password,
-      searchedUser.Password
+      searchedUser.password!
     );
 
     if (!isPasswordValid) {
@@ -185,13 +184,13 @@ export const loginUser = async (
     // if the password and hashed password match, then generate an access and refresh token
 
     const accessToken = generateAccessToken(
-      searchedUser.EmployeeID.toString(),
-      searchedUser.RoleID
+      searchedUser.id.toString(),
+      searchedUser.role
     );
 
     // generate refresh token returns an array
     // storing that array into a new constant variable
-    const genetated = generateRefreshToken(searchedUser.EmployeeID.toString());
+    const genetated = generateRefreshToken(searchedUser.id.toString());
     // refresh token is returned at index 0 & jti at 1.
     const refreshToken = genetated[0];
 

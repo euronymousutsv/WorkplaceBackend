@@ -1,7 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/db";
 import Channel from "./channelModel";
-import Employee from "./employeeModel";
+import { Employee } from "./employeeModel";
 
 class Chat extends Model {
   public chatID!: string;
