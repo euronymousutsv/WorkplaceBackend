@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { error } from "console";
-import ApiError from "../utils/ApiError";
-import { StatusCode } from "../utils/ApiResponse";
+import ApiError from "../utils/apiError";
+import { StatusCode } from "../utils/apiResponse";
 
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {

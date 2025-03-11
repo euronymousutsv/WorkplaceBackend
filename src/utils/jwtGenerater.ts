@@ -8,7 +8,7 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
 export interface AccessTokenPayload {
   userId: string;
-  role: number;
+  role: string;
 }
 
 export interface RefreshTokenPayload {
