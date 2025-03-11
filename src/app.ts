@@ -1,13 +1,24 @@
+<<<<<<< HEAD
 require("dotenv").config();
+=======
+import syncDatabase from "./config/sync";
+
+require('dotenv').config();
+>>>>>>> sequilize
 
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import employeeRoutes from "./routes/employeeRoutes";
+<<<<<<< HEAD
 import sequelize, { dbConnect } from "./config/db";
 import authRoutes from "./routes/loginRoute";
 import http from "http";
 import { Server } from "socket.io";
+=======
+import rosterRoutes from "./routes/rosterRoutes";
+import sequelize from "./config/db";
+>>>>>>> sequilize
 
 const app = express();
 // Normally express uses this under the hood but to run a socket.io server we will need to use this.
@@ -38,6 +49,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use("/api/employees", employeeRoutes);
+<<<<<<< HEAD
 app.use("/api/v1/auth", authRoutes);
 
 // Start Server
@@ -53,6 +65,14 @@ dbConnect()
     // If the connection fails, don't start the server
     console.error("Database connection failed. Server won't start.", err);
   });
+=======
+app.use("/api/roster",rosterRoutes)
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+syncDatabase();
+
+>>>>>>> sequilize
 // async function test() {
 //   try {
 //     await sequelize.authenticate();
@@ -63,9 +83,9 @@ dbConnect()
 // }
 // test();
 
-sequelize.sync();
-// .then(() => {
-//   app.listen(PORT, () => {
-//     console.log(`Server running on http://localhost:${PORT}`);
-//   });
-// });
+sequelize.sync()
+.then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+});

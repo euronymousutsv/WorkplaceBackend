@@ -50,7 +50,7 @@ export const createEmployee = async (
 
   try {
     // Check if the employee email already exists
-    const existingEmployee = await Employee.findOne({ where: { Email } });
+    const existingEmployee = await Employee.findOne({ where: { email } });
     if (existingEmployee) {
       res.status(400).json({ error: "Email already exists" });
     } else {

@@ -1,57 +1,70 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
-import Employee from "./employeeModel"; // Import Employee model
+import {Employee} from "./employeeModel"; // Import Employee model
 
-export interface PayrollAttributes {
-  PayrollID: number;
-  Salary: number;
-  TaxDeductions: number;
-  NetPay: number;
-  EmployeeID: number;
+ interface PayrollAttributes {
+  id: string;
+  salary?: number;
+  taxDeductions?: number;
+  netPay?: number;
+  employeeId?: number;
+  totalHours?: number;
+  hourlyRate?: number;
 }
 
-export interface PayrollCreationAttributes extends Optional<PayrollAttributes, "PayrollID"> {}
+ interface PayrollCreationAttributes extends Optional<PayrollAttributes, "id"|"employeeId"|"hourlyRate"|"netPay"|"salary"|"taxDeductions"|"totalHours"> {}
 
 class Payroll extends Model<PayrollAttributes, PayrollCreationAttributes> implements PayrollAttributes {
-  public PayrollID!: number;
-  public Salary!: number;
-  public TaxDeductions!: number;
-  public NetPay!: number;
-  public EmployeeID!: number;
+  public id!: string;
+  public salary!: number;
+  public taxDeductions!: number;
+  public netPay!: number;
+  public employeeId!: number;
+  public totalHours!: number;
+  public hourlyRate!: number;
 }
 
 Payroll.init(
   {
-    PayrollID: {
-      type: DataTypes.INTEGER,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    Salary: {
+    salary: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    TaxDeductions: {
+    taxDeductions: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    NetPay: {
+    netPay: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    EmployeeID: {
-      type: DataTypes.INTEGER,
+    employeeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references:{model : Employee, key: 'id'}
+    },
+    totalHours: {
+      type: DataTypes.FLOAT,
       allowNull: false,
     },
+    hourlyRate: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+
   },
   {
     sequelize,
-    tableName: "Payroll",
+    modelName: "Payroll",
+    tableName: "payroll",
     schema: "workplacedb", // Use the correct schema
     timestamps: false,
   }
 );
-
-// Define the relationship (Foreign Key)
-Payroll.belongsTo(Employee, { foreignKey: "EmployeeID", targetKey: "EmployeeID" });
-
-export default Payroll;
+// Payroll.belongsTo(Employee,{foreignKey:'employeeId'})
+export {Payroll, PayrollAttributes} 
