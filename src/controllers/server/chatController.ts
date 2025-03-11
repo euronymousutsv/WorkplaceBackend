@@ -63,6 +63,8 @@ const sendMessage = async (
 };
 
 // update previously sent message in a channel
+// todo :: fix an error where if the passed id is not a uuid, it shows general error. Wheras it needs to send that it is not uuid
+
 const updateMessage = async (
   req: Request<
     {},
@@ -80,7 +82,7 @@ const updateMessage = async (
     if (!messageId)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
-        { messageId: "" },
+        { messageId: undefined },
         "Message Id not provided"
       );
 
@@ -91,12 +93,14 @@ const updateMessage = async (
         "New message cannot be empty."
       );
 
-    const searchedMessage = await Chat.findOne({ where: { id: message } });
+    const searchedMessage = await Chat.findOne({ where: { id: messageId } });
+    console.log("...");
     if (!searchedMessage)
       throw new ApiError(StatusCode.NOT_FOUND, {}, "Message not found");
 
     searchedMessage.message = message;
     const savedMessage = await searchedMessage.save();
+
     if (!savedMessage)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
@@ -196,4 +200,76 @@ const deleteMessage = async (
   }
 };
 
-export { sendMessage, updateMessage, deleteMessage };
+// get all chats by channel
+const getChatsByChannel = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { channelId } = req.params;
+  // Get pagination parameters from the query string
+  const page = parseInt(req.query.page as string) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit as string) || 10; // Default to 10 results per page if not provided
+
+  try {
+    if (!channelId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "" },
+        "Channnel Id not provided"
+      );
+
+    // Calculate the offset for pagination
+    const offset = (page - 1) * limit;
+
+    // Get the paginated chats from the database
+    const chats = await Chat.findAll({
+      where: { channelId },
+      order: [["createdAt", "DESC"]],
+      limit: limit,
+      offset: offset,
+    });
+
+    // If no chats found, return a 404 error
+    if (chats.length === 0) {
+      throw new ApiError(
+        StatusCode.NOT_FOUND,
+        {},
+        "No chats found for this channel"
+      );
+    }
+
+    // Calculate the total number of chats to determine the total pages
+    const totalChats = await Chat.count({ where: { channelId } });
+    const totalPages = Math.ceil(totalChats / limit);
+
+    res.status(StatusCode.OK).json(
+      new ApiResponse(
+        StatusCode.CREATED,
+        {
+          chats,
+          page,
+          limit,
+          totalPages,
+          totalChats,
+        },
+        "Chats fetched successfully"
+      )
+    );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Failed to fetch chats."
+          )
+        );
+    }
+  }
+};
+
+export { sendMessage, updateMessage, deleteMessage, getChatsByChannel };
