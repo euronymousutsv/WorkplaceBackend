@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import Api from "twilio/lib/rest/Api";
-import ApiError from "../utils/apiError";
-import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import Server from "../models/serverModel";
+import ApiError from "../../utils/apiError";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse";
+import Server from "../../models/serverModel";
 import { UUIDV4 } from "sequelize";
 import { randomUUID } from "crypto";
-import Channel from "../models/channelModel";
+import Channel from "../../models/channelModel";
 
 const createNewChannel = async (
   req: Request<

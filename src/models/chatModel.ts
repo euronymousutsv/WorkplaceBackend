@@ -1,4 +1,4 @@
-import { Model, DataTypes } from "sequelize";
+import { Model, DataTypes, Optional } from "sequelize";
 import sequelize from "../config/db";
 import Channel from "./channelModel";
 import { Employee } from "./employeeModel";
@@ -10,7 +10,7 @@ interface ChatAttributes {
   channelId: string;
 }
 
-class Chat extends Model<ChatAttributes> {
+class Chat extends Model<ChatAttributes, Optional<ChatAttributes, "id">> {
   public id!: string;
   public userId!: string;
   public message!: string;
@@ -23,6 +23,7 @@ Chat.init(
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
     },
     userId: {
       type: DataTypes.UUID,
@@ -37,7 +38,6 @@ Chat.init(
       allowNull: false,
     },
     channelId: {
-      // Fixed casing
       type: DataTypes.UUID,
       allowNull: false,
       references: {
