@@ -1,9 +1,15 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/db";
-import { UUIDV4 } from "sequelize";
 
-class Server extends Model {
-  public serverId!: string;
+interface ServerAttributes {
+  id: string;
+  name: string;
+  idVerificationRequired: boolean;
+  inviteLink: string;
+}
+
+class Server extends Model<ServerAttributes> {
+  public id!: string;
   public name!: string;
   public idVerificationRequired!: boolean;
   public inviteLink!: string;
@@ -11,11 +17,11 @@ class Server extends Model {
 
 Server.init(
   {
-    serverId: {
+    id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
-      defaultValue: UUIDV4(),
+      defaultValue: DataTypes.UUIDV4,
     },
     name: {
       type: DataTypes.STRING,

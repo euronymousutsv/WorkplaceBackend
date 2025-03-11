@@ -3,16 +3,23 @@ import sequelize from "../config/db";
 import Channel from "./channelModel";
 import { Employee } from "./employeeModel";
 
-class Chat extends Model {
-  public chatID!: string;
+interface ChatAttributes {
+  id: string;
+  userId: string;
+  message: string;
+  channelId: string;
+}
+
+class Chat extends Model<ChatAttributes> {
+  public id!: string;
   public userId!: string;
   public message!: string;
-  public channelID!: string;
+  public channelId!: string; // Fixed casing
 }
 
 Chat.init(
   {
-    chatId: {
+    id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
@@ -29,7 +36,8 @@ Chat.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    channelID: {
+    channelId: {
+      // Fixed casing
       type: DataTypes.UUID,
       allowNull: false,
       references: {

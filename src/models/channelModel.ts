@@ -1,20 +1,24 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/db";
 import Server from "./serverModel";
-import { UUIDV4 } from "sequelize";
 
-class Channel extends Model {
-  public channelId!: string;
+interface ChannelAttributes {
+  id: string;
+  serverId: string;
+}
+
+class Channel extends Model<ChannelAttributes> {
+  public id!: string;
   public serverId!: string;
 }
 
 Channel.init(
   {
-    channelId: {
+    id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
-      defaultValue: UUIDV4(),
+      defaultValue: DataTypes.UUIDV4,
     },
     serverId: {
       type: DataTypes.UUID,
