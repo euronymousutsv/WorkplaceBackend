@@ -1,20 +1,25 @@
-import { Model, DataTypes } from "sequelize";
+import { Model, DataTypes, Optional } from "sequelize";
 import sequelize from "../config/db";
+import { Employee } from "./employeeModel";
+import { randomUUID } from "crypto";
 
 interface ServerAttributes {
   id: string;
   name: string;
   idVerificationRequired: boolean;
   inviteLink: string;
+  ownerId: string;
 }
 
-class Server extends Model<ServerAttributes> {
+interface ServerCreationAttributtes extends Optional<ServerAttributes, "id"> {}
+
+class Server extends Model<ServerAttributes, ServerCreationAttributtes> {
   public id!: string;
   public name!: string;
   public idVerificationRequired!: boolean;
   public inviteLink!: string;
+  public ownerId!: string;
 }
-
 Server.init(
   {
     id: {
@@ -35,6 +40,14 @@ Server.init(
     inviteLink: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    ownerId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: Employee,
+        key: "id",
+      },
     },
   },
   {

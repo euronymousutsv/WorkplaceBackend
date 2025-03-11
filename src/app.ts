@@ -12,6 +12,8 @@ import authRoutes from "./routes/loginRoute";
 import http from "http";
 import { Server } from "socket.io";
 import rosterRoutes from "./routes/rosterRoutes";
+import serverRouter from "./routes/serverRoutes";
+import channelRouter from "./routes/channelRoutes";
 
 const app = express();
 // Normally express uses this under the hood but to run a socket.io server we will need to use this.
@@ -44,6 +46,8 @@ app.use(bodyParser.json());
 app.use("/api/employees", employeeRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
+app.use("/api/v1/server", serverRouter);
+app.use("/api/v1/channel", channelRouter);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

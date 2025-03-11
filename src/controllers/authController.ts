@@ -97,6 +97,7 @@ export const registerUser = async (
       password: hashedPassword,
       phoneNumber: phoneNumber.toString(),
       employmentStatus: "Active",
+      role: "employee",
     });
 
     const savedUser = (await newUser).save();
