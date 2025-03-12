@@ -1,17 +1,18 @@
 import { Request, Response } from 'express';
-import { AttendanceEvent } from '../models/attendancModel';
+import { AttendanceEvent, AttendanceEventAttributes } from '../models/attendancModel';
 import { Employee } from '../models/employeeModel';
 import { Op } from 'sequelize';
 
 // ✅ **1. Clock In**
-export const clockIn = async (req: Request, res: Response) => {
+export const clockIn = async (req: Request<{}, {}, AttendanceEventAttributes>, res: Response): Promise<void> => {
   const { employeeId } = req.body;
 
   try {
     // Validate employee existence
     const employee = await Employee.findByPk(employeeId);
     if (!employee) {
-      return res.status(404).json({ error: 'Employee not found' });
+      res.status(404).json({ error: 'Employee not found' });
+      return
     }
 
     // Ensure employee is not already clocked in
@@ -24,7 +25,8 @@ export const clockIn = async (req: Request, res: Response) => {
     });
 
     if (existingClockIn) {
-      return res.status(400).json({ error: 'You are already clocked in. Please clock out first.' });
+      res.status(400).json({ error: 'You are already clocked in. Please clock out first.' });
+      return
     }
 
     // Create clock-in record
@@ -35,15 +37,17 @@ export const clockIn = async (req: Request, res: Response) => {
       clockStatus: 'clock_in',
     });
 
-    return res.status(201).json({ message: 'Clock-in successful', clockInEvent });
+    res.status(201).json({ message: 'Clock-in successful', clockInEvent });
+    return
   } catch (error) {
     console.error('Error during clock-in:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
 
 // ✅ **2. Clock Out**
-export const clockOut = async (req: Request, res: Response) => {
+export const clockOut = async (req: Request<{}, {}, AttendanceEventAttributes>, res: Response): Promise<void> => {
   const { employeeId } = req.body;
 
   try {
@@ -57,7 +61,8 @@ export const clockOut = async (req: Request, res: Response) => {
     });
 
     if (!lastClockIn) {
-      return res.status(400).json({ error: 'You are not clocked in.' });
+      res.status(400).json({ error: 'You are not clocked in.' });
+      return
     }
 
     // Create clock-out record
@@ -68,10 +73,12 @@ export const clockOut = async (req: Request, res: Response) => {
       clockStatus: 'clock_out',
     });
 
-    return res.status(201).json({ message: 'Clock-out successful', clockOutEvent });
+    res.status(201).json({ message: 'Clock-out successful', clockOutEvent });
+    return
   } catch (error) {
     console.error('Error during clock-out:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
 

@@ -43,3 +43,16 @@ Content-Type: application/json
 {
   "Email": "utsavneupane123@example.com",
   "Password":"securepassword123"}
+####
+POST http://localhost:3000/api/roster/createShift
+Content-Type: application/json
+
+{
+  "employeeId": "f36bcf40-35e7-4d26-98b8-ecba5298acd7",
+  "officeId": "c28ff698-2a66-469b-a36e-8b164c456b3f",
+  "startTime": "2025-03-11T09:00:00.000Z",
+  "endTime": "2025-03-11T17:00:00.000Z"
+}
+####
+GET http://localhost:3000/api/roster
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFbXBsb3llZUlEIjoiZjM2YmNmNDAtMzVlNy00ZDI2LTk4YjgtZWNiYTUyOThhY2Q3IiwiRW1haWwiOiJ1dHNhdm5ldXBhbmUxMjNAZXhhbXBsZS5jb20iLCJSb2xlIjoiYWRtaW4iLCJpYXQiOjE3NDE2NDg3NTAsImV4cCI6MTc0MTY1NTk1MH0.MBKDXiMac6Aa0DW3C3NZTVXoNObwkYLOu41xTP354pY
