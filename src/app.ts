@@ -10,29 +10,11 @@ import employeeRoutes from "./routes/employeeRoutes";
 import sequelize from "./config/db";
 import authRoutes from "./routes/loginRoute";
 import http from "http";
-import { Server } from "socket.io";
 import rosterRoutes from "./routes/rosterRoutes";
 import serverRouter from "./routes/server/serverRoutes";
 import channelRouter from "./routes/server/channelRoutes";
 import chatRouter from "./routes/server/chatRoutes";
-
-const app = express();
-// Normally express uses this under the hood but to run a socket.io server we will need to use this.
-const server = http.createServer(app);
-const io = new Server(server);
-
-// run when client connects
-io.on("connection", (socket) => {
-  console.log("New Web socket connection : ", socket.id);
-
-  socket.on("send_message", (message) => {
-    io.emit("receive_message", message);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
+import { app, server } from "./config/socket";
 
 // Middleware
 app.use(express.json());
@@ -55,18 +37,8 @@ app.use("/api/v1/chat", chatRouter);
 const PORT = process.env.PORT || 5000;
 syncDatabase();
 
-// async function test() {
-//   try {
-//     await sequelize.authenticate();
-//     console.log('Connection has been established successfully.');
-//   } catch (error) {
-//     console.error('Unable to connect to the database:', error);
-//   }
-// }
-// test();
-
 sequelize.sync().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 });
