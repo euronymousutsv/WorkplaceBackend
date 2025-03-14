@@ -12,7 +12,7 @@ import authRoutes from "./routes/loginRoute";
 import http from "http";
 import { Server } from "socket.io";
 import rosterRoutes from "./routes/rosterRoutes";
-
+import clockStatusRoutes from "./routes/clockStatusRoutes";
 const app = express();
 // Normally express uses this under the hood but to run a socket.io server we will need to use this.
 const server = http.createServer(app);
@@ -44,6 +44,7 @@ app.use(bodyParser.json());
 app.use("/api/employees", employeeRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
+app.use("/api/clockStatus", clockStatusRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

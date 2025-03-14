@@ -94,7 +94,8 @@ export const startBreak = async (req: Request, res: Response) => {
     });
 
     if (!lastClockIn) {
-      return res.status(400).json({ error: 'You must be clocked in to start a break.' });
+      res.status(400).json({ error: 'You must be clocked in to start a break.' });
+      return
     }
 
     // Create break start record
@@ -105,10 +106,12 @@ export const startBreak = async (req: Request, res: Response) => {
       clockStatus: 'break_start',
     });
 
-    return res.status(201).json({ message: 'Break started successfully', breakStartEvent });
+    res.status(201).json({ message: 'Break started successfully', breakStartEvent });
+    return
   } catch (error) {
     console.error('Error during break start:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
 
@@ -124,7 +127,8 @@ export const endBreak = async (req: Request, res: Response) => {
     });
 
     if (!lastBreakStart) {
-      return res.status(400).json({ error: 'You must start a break before ending it.' });
+      res.status(400).json({ error: 'You must start a break before ending it.' });
+      return
     }
 
     // Create break end record
@@ -135,10 +139,12 @@ export const endBreak = async (req: Request, res: Response) => {
       clockStatus: 'break_end',
     });
 
-    return res.status(201).json({ message: 'Break ended successfully', breakEndEvent });
+    res.status(201).json({ message: 'Break ended successfully', breakEndEvent });
+    return
   } catch (error) {
     console.error('Error during break end:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
 
@@ -152,10 +158,12 @@ export const getEmployeeAttendance = async (req: Request, res: Response) => {
       order: [['eventTime', 'DESC']],
     });
 
-    return res.status(200).json({ attendanceRecords });
+    res.status(200).json({ attendanceRecords });
+    return
   } catch (error) {
     console.error('Error fetching attendance records:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
 
@@ -175,9 +183,11 @@ export const getAllAttendance = async (req: Request, res: Response) => {
       order: [['eventTime', 'DESC']],
     });
 
-    return res.status(200).json({ attendanceRecords });
+    res.status(200).json({ attendanceRecords });
+    return
   } catch (error) {
     console.error('Error fetching attendance records:', error);
-    return res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
+    return
   }
 };
