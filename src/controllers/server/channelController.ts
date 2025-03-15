@@ -3,7 +3,7 @@ import Api from "twilio/lib/rest/Api";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Server from "../../models/serverModel";
-import { UUIDV4 } from "sequelize";
+import { UUIDV4, where } from "sequelize";
 import { randomUUID } from "crypto";
 import Channel from "../../models/channelModel";
 
@@ -65,4 +65,97 @@ const createNewChannel = async (
   }
 };
 
-export { createNewChannel };
+const getAllChannelForCurrentServer = async (
+  req: Request<
+    {},
+    {},
+    {
+      serverId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { serverId } = req.body;
+
+  try {
+    if (!serverId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "Make sure both Server is provided."
+      );
+
+    const allChannel = await Channel.findAll({ where: { serverId: serverId } });
+    if (allChannel.length <= 0) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "No Channels found");
+    }
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(StatusCode.CREATED, allChannel, "All channels fetched")
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+const deleteChannel = async (
+  req: Request<
+    {},
+    {},
+    {
+      channelId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { channelId } = req.body;
+
+  try {
+    if (!channelId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { channelId: "" },
+        "Make sure Channel Id is provided."
+      );
+
+    const searchedChannel = await Channel.findOne({ where: { id: channelId } });
+    if (!searchedChannel)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Channel Not found");
+    searchedChannel?.destroy();
+    res
+      .status(200)
+      .json(
+        new ApiResponse(StatusCode.CREATED, searchedChannel, "Channel deleted")
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+export { createNewChannel, getAllChannelForCurrentServer, deleteChannel };
