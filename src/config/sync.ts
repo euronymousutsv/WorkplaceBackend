@@ -9,6 +9,7 @@ import "../models/association";
 import Chat from "../models/chatModel";
 import Server from "../models/serverModel";
 import Channel from "../models/channelModel";
+import JoinedServer from "../models/joinedServerModel";
 const syncDatabase = async () => {
   try {
     console.log("🔄 Connecting to the database...");
@@ -30,6 +31,7 @@ const syncDatabase = async () => {
     await Chat.sync({ alter: true });
     await Server.sync({ alter: true });
     await Channel.sync({ alter: true });
+    await JoinedServer.sync({ alter: true });
 
     console.log("✅ Database synced successfully!");
   } catch (error) {

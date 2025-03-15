@@ -15,6 +15,7 @@ import serverRouter from "./routes/server/serverRoutes";
 import channelRouter from "./routes/server/channelRoutes";
 import chatRouter from "./routes/server/chatRoutes";
 import { app, server } from "./config/socket";
+import clockRoute from "./routes/clockStatusRoutes";
 
 // Middleware
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);
 app.use("/api/v1/channel", channelRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("api/clock", clockRoute);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

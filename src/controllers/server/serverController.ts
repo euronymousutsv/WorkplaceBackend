@@ -3,8 +3,12 @@ import Api from "twilio/lib/rest/Api";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Server from "../../models/serverModel";
-import { UUIDV4 } from "sequelize";
+import { UUIDV4, where } from "sequelize";
 import { randomUUID } from "crypto";
+import { verifyAccessToken } from "../../utils/jwtGenerater";
+import { Employee } from "../../models/employeeModel";
+import JoinedServer from "../../models/joinedServerModel";
+import { server } from "../../config/socket";
 
 const registerServer = async (
   req: Request<
@@ -78,4 +82,113 @@ const registerServer = async (
   }
 };
 
-export { registerServer };
+const joinServer = async (
+  req: Request<
+    {},
+    {},
+    {
+      inviteCode: string;
+      accessToken: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { inviteCode, accessToken } = req.body;
+
+  try {
+    if (!inviteCode)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { inviteId: "" },
+        "Invide Code cannot be empty"
+      );
+
+    if (!accessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+    const decoded = verifyAccessToken(accessToken);
+    const userId = decoded?.userId;
+
+    const searchedServer = await Server.findOne({
+      where: { inviteLink: inviteCode },
+    });
+    if (!searchedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server not found.");
+
+    const joinServer = await JoinedServer.create({
+      id: userId,
+      serverId: searchedServer.id,
+    });
+
+    if (!joinServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to join a server");
+    res
+      .status(201)
+      .json(new ApiResponse(StatusCode.CREATED, server, "Joined Success!"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+const getLoggedInUserServer = async (
+  req: Request<
+    {},
+    {},
+    {
+      accessToken: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { accessToken } = req.body;
+
+  try {
+    if (!accessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+
+    const decoded = verifyAccessToken(accessToken);
+    const userId = decoded?.userId;
+
+    const joinedServer = await JoinedServer.findOne({ where: { id: userId } });
+    if (!joinedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server Not found");
+    res
+      .status(201)
+      .json(new ApiResponse(StatusCode.CREATED, joinedServer!, "Server found"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+export { registerServer, getLoggedInUserServer, joinServer };
