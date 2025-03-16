@@ -13,6 +13,7 @@ import { Employee } from "../models/employeeModel";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyAccessToken,
 } from "../utils/jwtGenerater";
 import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
@@ -340,5 +341,142 @@ export const validateVerificationCode = async (
       res.status(500).json(new ApiError(500, error, "Internal Server Error"));
     }
     return;
+  }
+};
+
+enum PersonalInfoEnum {
+  FULLNAME = "fullName",
+  LASTNAME = "lastName",
+  PHONE = "phone",
+  PROFILEIMAGE = "profileImage",
+  PASSWORD = "password",
+}
+export const editCurrentUserDetail = async (
+  req: Request<
+    {},
+    {},
+    { password: string; editType: PersonalInfoEnum; newDetail: string }
+  >,
+  res: Response
+) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  const { password, editType, newDetail } = req.body;
+  try {
+    if (!token) {
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Missing Token.");
+    }
+    if (!editType || !newDetail) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Missing, What field do you want to update?"
+      );
+    }
+    if (!Object.values(PersonalInfoEnum).includes(editType)) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Invalid Edit Type");
+    }
+
+    if (!password) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Missing Password");
+    }
+
+    const decodedToken = verifyAccessToken(token || "");
+
+    if (!decodedToken)
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Access token Expired.");
+
+    const user = await Employee.findOne({
+      where: { id: decodedToken?.userId },
+    });
+
+    if (!user) throw new ApiError(StatusCode.NOT_FOUND, {}, "User not found");
+    const verifyPassword = await checkPassword(password, user?.password || "");
+
+    if (!verifyPassword) {
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Incorrect Credencial");
+    }
+
+    switch (editType) {
+      case PersonalInfoEnum.FULLNAME:
+        const name = newDetail.split(" ");
+
+        if (user.firstName == name[0] && user.lastName == name[1]) {
+          throw new ApiError(
+            StatusCode.UNAUTHORIZED,
+            {},
+            "Same details cannot be changed."
+          );
+        }
+        if (user.firstName != name[0]) {
+          user.firstName = name[0];
+        }
+        if (user.lastName != name[1]) {
+          user.lastName = name[1];
+        }
+        const savedUser = await user.save();
+
+        if (!savedUser) {
+          throw new ApiError(
+            StatusCode.BAD_GATEWAY,
+            {},
+            "Something went wring while saving this information."
+          );
+        }
+        break;
+
+      case PersonalInfoEnum.PASSWORD:
+        const hashedPassword = await bcrypt.hash(newDetail, 10);
+        user.password = hashedPassword;
+        const passSavedUser = await user.save();
+        if (!passSavedUser) {
+          throw new ApiError(
+            StatusCode.BAD_GATEWAY,
+            {},
+            "Something went wring while saving this information."
+          );
+        }
+        break;
+
+      case PersonalInfoEnum.PHONE:
+        const validPhone = validatePhoneNumber(newDetail);
+        if (!validPhone) {
+          throw new ApiError(
+            StatusCode.BAD_REQUEST,
+            {},
+            "Phone Number is not valid"
+          );
+        }
+        user.phoneNumber = newDetail;
+        const phoneSavedUser = await user.save();
+        if (!phoneSavedUser) {
+          throw new ApiError(
+            StatusCode.BAD_GATEWAY,
+            {},
+            "Something went wrong while saving this information."
+          );
+        }
+        break;
+    }
+
+    res
+      .status(StatusCode.OK)
+      .json(
+        new ApiResponse(StatusCode.OK, editType + " changed successfully.")
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.BAD_REQUEST)
+        .json(
+          new ApiError(
+            StatusCode.BAD_REQUEST,
+            error,
+            "Something went wrong while fetching user info"
+          )
+        );
+    }
   }
 };

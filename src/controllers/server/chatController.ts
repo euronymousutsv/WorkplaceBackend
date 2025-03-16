@@ -3,6 +3,7 @@ import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Chat from "../../models/chatModel";
 import { Employee } from "../../models/employeeModel";
+import { io } from "../../config/socket";
 
 // send a message to a channel
 const sendMessage = async (
@@ -41,6 +42,8 @@ const sendMessage = async (
       );
 
     const savedMessage = await Chat.create({ userId, message, channelId });
+    // emit message to all clients in this channel
+    io.to(channelId).emit("newMessage", savedMessage);
 
     res
       .status(201)
@@ -107,6 +110,8 @@ const updateMessage = async (
         {},
         "Unable to update message"
       );
+    // Emit the updated message to all clients
+    io.to(savedMessage.channelId).emit("updatedMessage", savedMessage);
 
     res
       .status(201)
@@ -114,7 +119,7 @@ const updateMessage = async (
         new ApiResponse(
           StatusCode.CREATED,
           savedMessage.dataValues,
-          "Message sent"
+          "Message updated"
         )
       );
   } catch (error) {
@@ -181,6 +186,8 @@ const deleteMessage = async (
       );
 
     await searchedMessage.destroy();
+    // Emit the deleted message to all clients in the channel
+    io.to(searchedMessage.channelId).emit("deletedMessage", messageId);
 
     res.status(201).json(new ApiResponse(StatusCode.OK, {}, "Message deleted"));
   } catch (error) {
@@ -227,6 +234,18 @@ const getChatsByChannel = async (
       order: [["createdAt", "DESC"]],
       limit: limit,
       offset: offset,
+      include: {
+        model: Employee,
+        as: "Employee",
+        attributes: [
+          "firstName",
+          "email",
+          "phoneNumber",
+          "employmentStatus",
+          "role",
+          "profileImage",
+        ],
+      },
     });
 
     // If no chats found, return a 404 error

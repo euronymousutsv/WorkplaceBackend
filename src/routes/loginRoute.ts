@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 // import { generateToken } from '../middleware/authmiddleware';
 import pool from "../config/db";
 import {
+  editCurrentUserDetail,
   loginUser,
   registerUser,
   validateVerificationCode,
@@ -63,6 +64,7 @@ router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/sendVerificationCode").post(verificationCode);
 router.route("/validateVerificationCode").post(validateVerificationCode);
+router.route("/editCurrentUserDetail").post(editCurrentUserDetail);
 // router.route("/refreshToken").post(refreshToken);
 
 export default router;

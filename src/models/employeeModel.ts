@@ -14,6 +14,7 @@ interface EmployeeAttributes {
   employmentStatus: "Active" | "Inactive";
   role: "admin" | "employee" | "manager";
   password?: string;
+  profileImage?: string;
 }
 
 // Optional fields when creating a new Employee
@@ -29,6 +30,7 @@ interface EmployeeCreationAttributes
     | "password"
     | "phoneNumber"
     | "role"
+    | "profileImage"
   > {}
 
 class Employee
@@ -44,6 +46,7 @@ class Employee
   public employmentStatus!: "Active" | "Inactive";
   public role!: "admin" | "employee" | "manager";
   public password?: string;
+  profileImage?: string;
 }
 const checkEnumExists = async () => {
   const [results] = await sequelize.query(
@@ -90,6 +93,10 @@ Employee.init(
       type: DataTypes.ENUM("Active", "InActive"),
       allowNull: false,
       defaultValue: "InActive",
+    },
+    profileImage: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     role: {
       type: DataTypes.ENUM("admin", "employee", "manager"),
