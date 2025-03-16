@@ -127,7 +127,9 @@ const joinServer = async (
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to join a server");
     res
       .status(201)
-      .json(new ApiResponse(StatusCode.CREATED, server, "Joined Success!"));
+      .json(
+        new ApiResponse(StatusCode.CREATED, searchedServer, "Joined Success!")
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);
@@ -149,13 +151,14 @@ const getLoggedInUserServer = async (
   req: Request<
     {},
     {},
+    {},
     {
       accessToken: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { accessToken } = req.body;
+  const { accessToken } = req.query;
 
   try {
     if (!accessToken)

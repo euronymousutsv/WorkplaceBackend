@@ -13,7 +13,10 @@ Employee.hasMany(AttendanceEvent, {
 });
 
 Roster.belongsTo(Employee, { foreignKey: "employeeId" });
-Roster.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+Roster.belongsTo(OfficeLocation, {
+  foreignKey: "officeId",
+  as: "officeLocation",
+});
 
 OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
 

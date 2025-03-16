@@ -7,6 +7,6 @@ import {
 
 const router = express.Router();
 router.post("/create", createNewChannel);
-router.get("/getAllChannelForCurrentServer", getAllChannelForCurrentServer);
+router.get("/getAllChannelForCurrentServer/", getAllChannelForCurrentServer);
 router.delete("/delete", deleteChannel);
 export default router;

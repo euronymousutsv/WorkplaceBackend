@@ -69,13 +69,14 @@ const getAllChannelForCurrentServer = async (
   req: Request<
     {},
     {},
+    {},
     {
       serverId: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { serverId } = req.body;
+  const { serverId } = req.query;
 
   try {
     if (!serverId)

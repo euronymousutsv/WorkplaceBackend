@@ -4,6 +4,9 @@ import { Employee } from "../models/employeeModel";
 import { OfficeLocation } from "../models/officeLocation";
 import { Op } from "sequelize";
 import sequelize from "../config/db";
+import ApiError from "../utils/apiError";
+import ApiResponse, { StatusCode } from "../utils/apiResponse";
+import { verifyAccessToken } from "../utils/jwtGenerater";
 
 // ✅ **1. Create a Shift**
 const createShift = async (
@@ -160,6 +163,74 @@ const autoAssignShifts = async (
     console.error("Error auto-assigning shifts:", error);
     res.status(500).json({ error: "Server error" });
     return;
+  }
+};
+
+export const getShiftsForLoggedInUser = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      accessToken: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { accessToken } = req.query;
+
+  try {
+    if (!accessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+
+    const decoded = verifyAccessToken(accessToken);
+    const userId = decoded?.userId;
+
+    const allShifts = await Roster.findAll({
+      where: { employeeId: userId },
+      include: [
+        {
+          model: OfficeLocation,
+          as: "officeLocation",
+        },
+      ],
+    });
+
+    if (allShifts.length <= 0) {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(StatusCode.OK, allShifts!, "No Shifts avaivable")
+        );
+    }
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          allShifts!,
+          "Shifts fetched successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
   }
 };
 
