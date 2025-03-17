@@ -1,27 +1,46 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
-import {Employee} from "./employeeModel"; // Import Employee model
+import { Employee } from "./employeeModel"; // Import Employee model
 
- interface PayrollAttributes {
+interface PayrollAttributes {
   id: string;
   salary?: number;
   taxDeductions?: number;
   netPay?: number;
-  employeeId?: number;
+  employeeId?: string;
   totalHours?: number;
   hourlyRate?: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
- interface PayrollCreationAttributes extends Optional<PayrollAttributes, "id"|"employeeId"|"hourlyRate"|"netPay"|"salary"|"taxDeductions"|"totalHours"> {}
+interface PayrollCreationAttributes
+  extends Optional<
+    PayrollAttributes,
+    | "id"
+    | "employeeId"
+    | "hourlyRate"
+    | "netPay"
+    | "salary"
+    | "taxDeductions"
+    | "totalHours"
+    | "startDate"
+    | "endDate"
+  > {}
 
-class Payroll extends Model<PayrollAttributes, PayrollCreationAttributes> implements PayrollAttributes {
+class Payroll
+  extends Model<PayrollAttributes, PayrollCreationAttributes>
+  implements PayrollAttributes
+{
   public id!: string;
   public salary!: number;
   public taxDeductions!: number;
   public netPay!: number;
-  public employeeId!: number;
+  public employeeId!: string;
   public totalHours!: number;
   public hourlyRate!: number;
+  public startDate!: Date;
+  public endDate?: Date;
 }
 
 Payroll.init(
@@ -46,7 +65,7 @@ Payroll.init(
     employeeId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references:{model : Employee, key: 'id'}
+      references: { model: Employee, key: "id" },
     },
     totalHours: {
       type: DataTypes.FLOAT,
@@ -56,7 +75,14 @@ Payroll.init(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-
+    startDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    endDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
   },
   {
     sequelize,
@@ -67,4 +93,4 @@ Payroll.init(
   }
 );
 // Payroll.belongsTo(Employee,{foreignKey:'employeeId'})
-export {Payroll, PayrollAttributes} 
+export { Payroll, PayrollAttributes };
