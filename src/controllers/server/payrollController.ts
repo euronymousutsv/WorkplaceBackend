@@ -7,7 +7,7 @@ import { Payroll } from "../../models/payrollModel";
 import { Pay } from "twilio/lib/twiml/VoiceResponse";
 
 // change accessToken to userId
-const addANewSalary = async (
+export const addANewSalary = async (
   req: Request<
     {},
     {},
@@ -90,7 +90,7 @@ const addANewSalary = async (
   }
 };
 
-const getAEmployeeSalary = async (
+export const getAEmployeeSalary = async (
   req: Request<{}, {}, {}, { accessToken: string }>,
   res: Response
 ): Promise<void> => {
@@ -117,9 +117,7 @@ const getAEmployeeSalary = async (
       );
     res
       .status(201)
-      .json(
-        new ApiResponse(StatusCode.CREATED, payroll.dataValues!, "Server found")
-      );
+      .json(new ApiResponse(StatusCode.CREATED, searced, "Server found"));
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);
