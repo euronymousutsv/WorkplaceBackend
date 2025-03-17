@@ -1,79 +1,123 @@
-  import { DataTypes, Model, Optional } from "sequelize";
-  import sequelize from "../config/db";
-import Role from "./roleModel";
- export interface EmployeeAttributes {
-    EmployeeID: number;
-    FirstName: string;
-    LastName: string;
-    Email: string;
-    PhoneNumber: string;
-    EmploymentStatus: string;
-    RoleID: number;
-    Password: string;
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../config/db";
+import { Roster } from "./rosterModel";
+import { AttendanceEvent } from "./attendancModel";
+import { Payroll } from "./payrollModel";
+
+interface EmployeeAttributes {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  googleId?: string;
+  phoneNumber?: string;
+  employmentStatus: "Active" | "Inactive";
+  role: "admin" | "employee" | "manager";
+  password?: string;
+  profileImage?: string;
+}
+
+// Optional fields when creating a new Employee
+interface EmployeeCreationAttributes
+  extends Optional<
+    EmployeeAttributes,
+    | "id"
+    | "firstName"
+    | "lastName"
+    | "employmentStatus"
+    | "email"
+    | "googleId"
+    | "password"
+    | "phoneNumber"
+    | "role"
+    | "profileImage"
+  > {}
+
+class Employee
+  extends Model<EmployeeAttributes, EmployeeCreationAttributes>
+  implements EmployeeAttributes
+{
+  public id!: string;
+  public firstName?: string;
+  public lastName?: string;
+  public email!: string;
+  public googleId?: string;
+  public phoneNumber?: string;
+  public employmentStatus!: "Active" | "Inactive";
+  public role!: "admin" | "employee" | "manager";
+  public password?: string;
+  profileImage?: string;
+}
+const checkEnumExists = async () => {
+  const [results] = await sequelize.query(
+    `SELECT 1 FROM pg_type WHERE typname = 'enum_employee_role';`
+  );
+  return results.length > 0;
+};
+async () => {
+  const enumExists = await checkEnumExists();
+  if (!enumExists) {
+    await sequelize.query(
+      "CREATE TYPE enum_employee_role AS ENUM ('admin','employee','manager');"
+    );
   }
-
-  // Optional fields when creating a new Employee
-  export interface EmployeeCreationAttributes extends Optional<EmployeeAttributes, "EmployeeID"> {}
-
-  class Employee extends Model<EmployeeAttributes, EmployeeCreationAttributes> implements EmployeeAttributes {
-    public EmployeeID!: number;
-    public FirstName!: string;
-    public LastName!: string;
-    public Email!: string;
-    public PhoneNumber!: string;
-    public EmploymentStatus!: string;
-    public RoleID!: number;
-    public Password!: string;
-
-    public readonly Role!:Role;
-  }
-
-  Employee.init(
-    {
-      EmployeeID: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      FirstName: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-      },
-      LastName: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-      },
-      Email: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
-        },
-      },
-      PhoneNumber: {
-        type: DataTypes.STRING(15),
-        allowNull: false,
-      },
-      EmploymentStatus: {
-        type: DataTypes.STRING(20),
-        allowNull: false,
-      },
-      RoleID: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      Password: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
+};
+Employee.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    firstName: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    lastName: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
       },
     },
-    {
-      sequelize,
-      tableName: "employee",
-      schema: "workplacedb", // Use the correct schema
-      timestamps: false,
-    }
-  );
- Employee.belongsTo(Role,{foreignKey:'RoleID',targetKey:'RoleID'})
-  export default Employee;
+    phoneNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    employmentStatus: {
+      type: DataTypes.ENUM("Active", "InActive"),
+      allowNull: false,
+      defaultValue: "InActive",
+    },
+    profileImage: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    role: {
+      type: DataTypes.ENUM("admin", "employee", "manager"),
+      allowNull: false,
+      defaultValue: "employee",
+    },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    modelName: "Employee",
+    tableName: "employee",
+    schema: "workplacedb", // Use the correct schema
+    timestamps: false,
+  }
+);
+
+// Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
+// Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+// Employee.hasMany(Payroll, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+export { Employee, EmployeeAttributes };
