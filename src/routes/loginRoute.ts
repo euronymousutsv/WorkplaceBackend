@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import pool from "../config/db";
 import {
   editCurrentUserDetail,
+  getCurrentUserDetails,
   loginUser,
   registerUser,
   validateVerificationCode,
@@ -65,6 +66,8 @@ router.route("/login").post(loginUser);
 router.route("/sendVerificationCode").post(verificationCode);
 router.route("/validateVerificationCode").post(validateVerificationCode);
 router.route("/editCurrentUserDetail").post(editCurrentUserDetail);
+router.route("/getCurrentUserDetails").get(getCurrentUserDetails);
+
 // router.route("/refreshToken").post(refreshToken);
 
 export default router;

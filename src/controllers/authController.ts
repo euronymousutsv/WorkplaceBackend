@@ -480,3 +480,48 @@ export const editCurrentUserDetail = async (
     }
   }
 };
+
+export const getCurrentUserDetails = async (req: Request, res: Response) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  try {
+    const decodedToken = verifyAccessToken(token || "");
+
+    if (!decodedToken)
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Access token Expired.");
+
+    const user = await Employee.findOne({
+      where: { id: decodedToken?.userId },
+    });
+
+    if (!user)
+      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "User not found");
+    else {
+      const { password, ...userWithoutPassword } = user.dataValues;
+      res
+        .status(StatusCode.OK)
+        .json(
+          new ApiResponse(
+            StatusCode.OK,
+            userWithoutPassword,
+            "Successfully fetcted user data"
+          )
+        );
+    }
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.BAD_REQUEST)
+        .json(
+          new ApiError(
+            StatusCode.BAD_REQUEST,
+            error,
+            "SOmething went wrong when fetching user info"
+          )
+        );
+    }
+  }
+};
