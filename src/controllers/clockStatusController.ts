@@ -5,8 +5,46 @@ import {
 } from "../models/attendancModel";
 import { Employee } from "../models/employeeModel";
 import { Op } from "sequelize";
+import { OfficeLocation } from "../models/officeLocation";
 
 // ✅ **1. Clock In**
+
+
+const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+};
+
+export const validateLocation = async (req:Request, res:Response)=>{
+  const {latitude, longitude, employeeId}=req.body;
+
+  try{
+    const employee = await Employee.findByPk(employeeId,{
+      include:[{model: OfficeLocation, as: "assignedOffice"}],
+    })
+    if(!employee||!employee.assignedOffice){
+      return res.status(404).json({error:"Office location not found for employee"})
+    }
+    
+    const { latitude: officeLat, longitude: officeLng, radius } = employee.assignedOffice;
+    const distance = haversineDistance(latitude, longitude, officeLat, officeLng);
+    const isWithinOffice = distance <= radius;
+
+    res.json({ isWithinOffice });
+  }catch (error){
+    res.status(500).json({error:"Server error"})
+  }
+}
+
 export const clockIn = async (
   req: Request<{}, {}, AttendanceEventAttributes>,
   res: Response

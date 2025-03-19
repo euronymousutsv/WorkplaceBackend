@@ -15,6 +15,7 @@ interface EmployeeAttributes {
   role: "admin" | "employee" | "manager";
   password?: string;
   profileImage?: string;
+
 }
 
 // Optional fields when creating a new Employee
