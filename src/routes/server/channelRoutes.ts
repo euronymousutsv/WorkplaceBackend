@@ -3,7 +3,7 @@ import {
   createNewChannel,
   deleteChannel,
   getAllChannelForCurrentServer,
-} from "../../controllers/server/channelController";
+} from "../../controllers/server/channelController.js";
 
 const router = express.Router();
 router.post("/create", createNewChannel);

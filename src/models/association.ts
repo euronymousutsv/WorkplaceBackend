@@ -1,11 +1,11 @@
-import { AttendanceEvent } from "./attendancModel";
-import Channel from "./channelModel";
-import Chat from "./chatModel";
-import { Employee } from "./employeeModel";
-import { OfficeLocation } from "./officeLocation";
-import { Payroll } from "./payrollModel";
-import { Roster } from "./rosterModel";
-import Server from "./serverModel";
+import { AttendanceEvent } from "./attendancModel.js";
+import Channel from "./channelModel.js";
+import Chat from "./chatModel.js";
+import { Employee } from "./employeeModel.js";
+import { OfficeLocation } from "./officeLocation.js";
+import { Payroll } from "./payrollModel.js";
+import { Roster } from "./rosterModel.js";
+import Server from "./serverModel.js";
 
 // Define associations AFTER models are imported
 Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });

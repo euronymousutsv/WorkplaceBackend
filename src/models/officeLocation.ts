@@ -1,6 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/db";
-import { Roster } from "./rosterModel";
+import sequelize from "../config/db.js";
 
 // Define attributes for the OfficeLocation model
 interface OfficeLocationAttributes {
@@ -12,10 +11,13 @@ interface OfficeLocationAttributes {
 }
 
 // Define optional fields for Sequelize
-interface OfficeLocationCreationAttributes extends Optional<OfficeLocationAttributes, "id"> {}
+interface OfficeLocationCreationAttributes
+  extends Optional<OfficeLocationAttributes, "id"> {}
 
-class OfficeLocation extends Model<OfficeLocationAttributes, OfficeLocationCreationAttributes> 
-  implements OfficeLocationAttributes {
+class OfficeLocation
+  extends Model<OfficeLocationAttributes, OfficeLocationCreationAttributes>
+  implements OfficeLocationAttributes
+{
   public id!: string;
   public name?: string;
   public latitude?: number;

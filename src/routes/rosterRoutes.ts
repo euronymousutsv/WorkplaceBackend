@@ -1,5 +1,5 @@
 import express from "express";
-import { authMiddleware } from "../middleware/authmiddleware";
+import { authMiddleware } from "../middleware/authmiddleware.js";
 import {
   createShift,
   getShifts,
@@ -7,7 +7,7 @@ import {
   autoAssignShifts,
   updateShift,
   getShiftsForLoggedInUser,
-} from "../controllers/rosterController";
+} from "../controllers/rosterController.js";
 
 const router = express.Router();
 router.post("/createShift", createShift);

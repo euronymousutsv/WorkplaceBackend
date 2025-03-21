@@ -3,11 +3,11 @@ import {
   getLoggedInUserServer,
   joinServer,
   registerServer,
-} from "../../controllers/server/serverController";
+} from "../../controllers/server/serverController.js";
 import {
   addANewSalary,
   getAEmployeeSalary,
-} from "../../controllers/server/payrollController";
+} from "../../controllers/server/payrollController.js";
 
 const router = express.Router();
 router.post("/register", registerServer);

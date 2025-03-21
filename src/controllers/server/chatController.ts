@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import ApiError from "../../utils/apiError";
-import ApiResponse, { StatusCode } from "../../utils/apiResponse";
-import Chat from "../../models/chatModel";
-import { Employee } from "../../models/employeeModel";
-import { io } from "../../config/socket";
+import ApiError from "../../utils/apiError.js";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse.js";
+import Chat from "../../models/chatModel.js";
+import { Employee } from "../../models/employeeModel.js";
+import { io } from "../../config/socket.js";
 
 // send a message to a channel
 const sendMessage = async (

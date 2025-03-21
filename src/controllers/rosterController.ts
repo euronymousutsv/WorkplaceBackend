@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { Roster, RosterAttributes } from "../models/rosterModel";
-import { Employee } from "../models/employeeModel";
-import { OfficeLocation } from "../models/officeLocation";
+import { Roster, RosterAttributes } from "../models/rosterModel.js";
+import { Employee } from "../models/employeeModel.js";
+import { OfficeLocation } from "../models/officeLocation.js";
 import { Op } from "sequelize";
-import sequelize from "../config/db";
-import ApiError from "../utils/apiError";
-import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import { verifyAccessToken } from "../utils/jwtGenerater";
+import sequelize from "../config/db.js";
+import ApiError from "../utils/apiError.js";
+import ApiResponse, { StatusCode } from "../utils/apiResponse.js";
+import { verifyAccessToken } from "../utils/jwtGenerater.js";
 
 // ✅ **1. Create a Shift**
 const createShift = async (

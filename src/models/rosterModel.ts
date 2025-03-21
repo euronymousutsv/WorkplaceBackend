@@ -1,8 +1,7 @@
-import { Model, DataTypes, Optional } from 'sequelize';
-import sequelize from '../config/db';
-import { Employee } from './employeeModel';
-import { OfficeLocation } from './officeLocation';
-
+import { Model, DataTypes, Optional } from "sequelize";
+import sequelize from "../config/db.js";
+import { Employee } from "./employeeModel.js";
+import { OfficeLocation } from "./officeLocation.js";
 
 interface RosterAttributes {
   id: string;
@@ -12,53 +11,57 @@ interface RosterAttributes {
   endTime: Date;
 }
 
-interface RosterCreationAttributes extends Optional<RosterAttributes, 'id'|"endTime"|"officeId"|"startTime"|"employeeId"> {}
+interface RosterCreationAttributes
+  extends Optional<
+    RosterAttributes,
+    "id" | "endTime" | "officeId" | "startTime" | "employeeId"
+  > {}
 
-class Roster extends Model <RosterAttributes, RosterCreationAttributes> implements RosterAttributes {
-    public id!: string;
-    public employeeId!: string;
-    public officeId!: string;
-    public startTime!: Date;
-    public endTime!: Date;
-  }
-  
-  Roster.init(
-    {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-      },
-      employeeId: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        references: { model: Employee, key: 'id' },
-        onDelete:'CASCADE'
-      },
-      officeId: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        references: { model: OfficeLocation, key: 'id' },
-        onDelete:'CASCADE'
-      },
-      startTime: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      endTime: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
+class Roster
+  extends Model<RosterAttributes, RosterCreationAttributes>
+  implements RosterAttributes
+{
+  public id!: string;
+  public employeeId!: string;
+  public officeId!: string;
+  public startTime!: Date;
+  public endTime!: Date;
+}
+
+Roster.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    {
-      sequelize,
-      modelName: 'roster',
-      tableName:'roster'
-    }
-  );
+    employeeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
+    },
+    officeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: OfficeLocation, key: "id" },
+      onDelete: "CASCADE",
+    },
+    startTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    endTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    modelName: "roster",
+    tableName: "roster",
+  }
+);
 //   Roster.belongsTo(Employee,{foreignKey:'employeeId'})
 //   Roster.belongsTo(OfficeLocation,{foreignKey:'officeId'})
-  export { Roster, RosterAttributes };
-
-  
-
+export { Roster, RosterAttributes };

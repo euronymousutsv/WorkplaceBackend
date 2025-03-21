@@ -1,5 +1,5 @@
 import express from "express";
-import { authMiddleware } from "../middleware/authmiddleware";
+import { authMiddleware } from "../middleware/authmiddleware.js";
 import {
   clockIn,
   clockOut,
@@ -7,7 +7,7 @@ import {
   endBreak,
   getEmployeeAttendance,
   getAllAttendance,
-} from "../controllers/clockStatusController";
+} from "../controllers/clockStatusController.js";
 const router = express.Router();
 router.post("/clockIn", clockIn);
 router.put("/clockOut", clockOut);

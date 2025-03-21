@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import ApiError from "./apiError";
-import { StatusCode } from "./apiResponse";
+import ApiError from "./apiError.js";
+import { StatusCode } from "./apiResponse.js";
 
 /**
  * Checks if the hashed password matches the provided plain-text password.

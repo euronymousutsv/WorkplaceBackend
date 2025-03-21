@@ -1,21 +1,19 @@
 require("dotenv").config();
-import syncDatabase from "./config/sync";
+import syncDatabase from "./config/sync.js";
 
 require("dotenv").config();
 
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import employeeRoutes from "./routes/employeeRoutes";
-import sequelize from "./config/db";
-import authRoutes from "./routes/loginRoute";
-import http from "http";
-import rosterRoutes from "./routes/rosterRoutes";
-import serverRouter from "./routes/server/serverRoutes";
-import channelRouter from "./routes/server/channelRoutes";
-import chatRouter from "./routes/server/chatRoutes";
-import { app, server } from "./config/socket";
-import clockRoute from "./routes/clockStatusRoutes";
+import sequelize from "./config/db.js";
+import authRoutes from "./routes/loginRoute.js";
+import rosterRoutes from "./routes/rosterRoutes.js";
+import serverRouter from "./routes/server/serverRoutes.js";
+import channelRouter from "./routes/server/channelRoutes.js";
+import chatRouter from "./routes/server/chatRoutes.js";
+import { app, server } from "./config/socket.js";
+import clockRoute from "./routes/clockStatusRoutes.js";
 
 // Middleware
 app.use(express.json());
@@ -27,7 +25,6 @@ app.use(
 app.use(bodyParser.json());
 
 // Routes
-app.use("/api/employees", employeeRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);

@@ -1,20 +1,20 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import twilio from "twilio";
-import ApiError from "../utils/apiError";
+import ApiError from "../utils/apiError.js";
 import {
   checkPassword,
   validateEmail,
   validatePasswordSecurity,
   validatePhoneNumber,
 } from "../utils/helper";
-import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import { Employee } from "../models/employeeModel";
+import ApiResponse, { StatusCode } from "../utils/apiResponse.js";
+import { Employee } from "../models/employeeModel.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyAccessToken,
-} from "../utils/jwtGenerater";
+} from "../utils/jwtGenerater.js";
 import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
 

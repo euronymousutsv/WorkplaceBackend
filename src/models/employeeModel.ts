@@ -1,8 +1,8 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/db";
-import { Roster } from "./rosterModel";
-import { AttendanceEvent } from "./attendancModel";
-import { Payroll } from "./payrollModel";
+import sequelize from "../config/db.js";
+import { Roster } from "./rosterModel.js";
+import { AttendanceEvent } from "./attendancModel.js";
+import { Payroll } from "./payrollModel.js";
 
 interface EmployeeAttributes {
   id: string;

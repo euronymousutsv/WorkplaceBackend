@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import ApiError from "../../utils/apiError";
-import ApiResponse, { StatusCode } from "../../utils/apiResponse";
-import { verifyAccessToken } from "../../utils/jwtGenerater";
-import JoinedServer from "../../models/joinedServerModel";
-import { Payroll } from "../../models/payrollModel";
-import { Pay } from "twilio/lib/twiml/VoiceResponse";
+import ApiError from "../../utils/apiError.js";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse.js";
+import { verifyAccessToken } from "../../utils/jwtGenerater.js";
+import JoinedServer from "../../models/joinedServerModel.js";
+import { Payroll } from "../../models/payrollModel.js";
+import { Pay } from "twilio/lib/twiml/VoiceResponse.js";
 
 // change accessToken to userId
 export const addANewSalary = async (
