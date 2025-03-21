@@ -1,4 +1,4 @@
-import { StatusCode } from "./apiResponse.js";
+import { StatusCode } from "./apiResponse";
 
 class ApiError<T> extends Error {
   public statusCode: StatusCode;
