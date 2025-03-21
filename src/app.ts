@@ -1,19 +1,19 @@
 require("dotenv").config();
-import syncDatabase from "./config/sync.js";
+import syncDatabase from "./config/sync";
 
 require("dotenv").config();
 
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import sequelize from "./config/db.js";
-import authRoutes from "./routes/loginRoute.js";
-import rosterRoutes from "./routes/rosterRoutes.js";
-import serverRouter from "./routes/server/serverRoutes.js";
-import channelRouter from "./routes/server/channelRoutes.js";
-import chatRouter from "./routes/server/chatRoutes.js";
-import { app, server } from "./config/socket.js";
-import clockRoute from "./routes/clockStatusRoutes.js";
+import sequelize from "./config/db";
+import authRoutes from "./routes/loginRoute";
+import rosterRoutes from "./routes/rosterRoutes";
+import serverRouter from "./routes/server/serverRoutes";
+import channelRouter from "./routes/server/channelRoutes";
+import chatRouter from "./routes/server/chatRoutes";
+import { app, server } from "./config/socket";
+import clockRoute from "./routes/clockStatusRoutes";
 
 // Middleware
 app.use(express.json());

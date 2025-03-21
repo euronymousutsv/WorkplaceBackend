@@ -1,6 +1,6 @@
 import { Model, DataTypes, Optional } from "sequelize";
-import sequelize from "../config/db.js";
-import Server from "./serverModel.js";
+import sequelize from "../config/db";
+import Server from "./serverModel";
 
 interface ChannelAttributes {
   id: string;

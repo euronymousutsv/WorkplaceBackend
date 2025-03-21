@@ -4,7 +4,7 @@ import {
   getChatsByChannel,
   sendMessage,
   updateMessage,
-} from "../../controllers/server/chatController.js";
+} from "../../controllers/server/chatController";
 
 const router = express.Router();
 router.post("/send", sendMessage);

@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import {
   AttendanceEvent,
   AttendanceEventAttributes,
-} from "../models/attendancModel.js";
-import { Employee } from "../models/employeeModel.js";
+} from "../models/attendancModel";
+import { Employee } from "../models/employeeModel";
 import { Op } from "sequelize";
 
 // ✅ **1. Clock In**

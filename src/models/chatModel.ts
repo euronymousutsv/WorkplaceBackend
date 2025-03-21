@@ -1,7 +1,7 @@
 import { Model, DataTypes, Optional } from "sequelize";
-import sequelize from "../config/db.js";
-import Channel from "./channelModel.js";
-import { Employee } from "./employeeModel.js";
+import sequelize from "../config/db";
+import Channel from "./channelModel";
+import { Employee } from "./employeeModel";
 
 interface ChatAttributes {
   id: string;

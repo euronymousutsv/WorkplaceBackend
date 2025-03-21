@@ -1,6 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/db.js";
-import { Employee } from "./employeeModel.js"; // Import Employee model
+import sequelize from "../config/db";
+import { Employee } from "./employeeModel"; // Import Employee model
 
 interface PayrollAttributes {
   id: string;

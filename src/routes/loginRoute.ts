@@ -1,7 +1,5 @@
 import express, { Request, Response } from "express";
-import bcrypt from "bcrypt";
-// import { generateToken } from '../middleware/authmiddleware.js';
-import pool from "../config/db";
+
 import {
   editCurrentUserDetail,
   getCurrentUserDetails,
@@ -9,7 +7,7 @@ import {
   registerUser,
   validateVerificationCode,
   verificationCode,
-} from "../controllers/authController.js";
+} from "../controllers/authController";
 
 const router = express.Router();
 // Test route to verify registration

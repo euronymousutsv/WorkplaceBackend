@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
-import Api from "twilio/lib/rest/Api";
-import ApiError from "../../utils/apiError.js";
-import ApiResponse, { StatusCode } from "../../utils/apiResponse.js";
-import Server from "../../models/serverModel.js";
-import { UUIDV4, where } from "sequelize";
+import ApiError from "../../utils/apiError";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse";
+import Server from "../../models/serverModel";
+
 import { randomUUID } from "crypto";
-import { verifyAccessToken } from "../../utils/jwtGenerater.js";
-import { Employee } from "../../models/employeeModel.js";
-import JoinedServer from "../../models/joinedServerModel.js";
-import { server } from "../../config/socket.js";
+import { verifyAccessToken } from "../../utils/jwtGenerater";
+import JoinedServer from "../../models/joinedServerModel";
 
 const registerServer = async (
   req: Request<

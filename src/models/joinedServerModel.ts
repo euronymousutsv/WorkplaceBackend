@@ -1,7 +1,7 @@
 import { Model, DataTypes, Optional } from "sequelize";
-import sequelize from "../config/db.js";
-import { Employee } from "./employeeModel.js";
-import Server from "./serverModel.js";
+import sequelize from "../config/db";
+import { Employee } from "./employeeModel";
+import Server from "./serverModel";
 
 interface JoinedServerAttributes {
   id: string;
