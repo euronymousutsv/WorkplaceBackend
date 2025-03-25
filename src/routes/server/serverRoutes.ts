@@ -4,6 +4,7 @@ import {
   deleteServer,
   getLoggedInUserServer,
   joinServer,
+  kickEmployee,
   registerServer,
 } from "../../controllers/server/serverController";
 import {
@@ -23,6 +24,10 @@ router.post("/joinServer", verifyLoginStatus, joinServer);
 router.put("/changeServerOwnership", verifyLoginStatus, changeServerOwnership);
 router.delete("/deleteServer", verifyLoginStatus, deleteServer);
 
+// kick Employee from a server
+router.delete("/kickEmployee", verifyLoginStatus, kickEmployee);
+
+// Send server wide notifications / annoucement
 // Payroll Routes
 router.post("/payroll/addANewSalary", verifyLoginStatus, addANewSalary);
 router.get(

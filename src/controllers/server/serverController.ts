@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
 import { checkPassword, getAccessToken } from "../../utils/helper";
-import { Employee } from "src/models/employeeModel";
+import { Employee } from "../../models/employeeModel";
 
 const registerServer = async (
   req: Request<
@@ -360,6 +360,66 @@ export const deleteServer = async (
     res
       .status(201)
       .json(new ApiResponse(StatusCode.OK, {}, "Server Deleted Successfully"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// kick an employee from a server
+export const kickEmployee = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      userId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  try {
+    const { userId } = req.query;
+    if (!userId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "" },
+        "userId cannot be empty"
+      );
+
+    const searchedUser = await JoinedServer.findOne({
+      where: { id: userId },
+    });
+
+    if (!searchedUser)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "User not found in any server"
+      );
+
+    searchedUser.destroy();
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          {},
+          ` ${searchedUser.id} Kicked Successfully`
+        )
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);

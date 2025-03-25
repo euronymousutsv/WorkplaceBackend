@@ -1,10 +1,12 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+import Server from "./serverModel";
 
 // Define attributes for the OfficeLocation model
 interface OfficeLocationAttributes {
   id: string;
   name?: string;
+  serverId?: string;
   latitude?: number;
   longitude?: number;
   radius?: number; // Optional field with default value
@@ -20,6 +22,7 @@ class OfficeLocation
 {
   public id!: string;
   public name?: string;
+  public serverId!: string;
   public latitude?: number;
   public longitude?: number;
   public radius?: number;
@@ -36,6 +39,16 @@ OfficeLocation.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+
+    serverId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: Server,
+        key: "id",
+      },
+    },
+
     latitude: {
       type: DataTypes.DECIMAL(10, 8),
       allowNull: false,
