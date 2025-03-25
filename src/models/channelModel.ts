@@ -1,20 +1,28 @@
-import { Model, DataTypes, Optional } from "sequelize";
+import { Model, DataTypes, Optional, Sequelize } from "sequelize";
 import sequelize from "../config/db";
 import Server from "./serverModel";
+
+export enum Roles {
+  ADMIN = "admin",
+  EMPLOYEE = "employee",
+  MANAGER = "manager",
+}
 
 interface ChannelAttributes {
   id: string;
   name: string;
   serverId: string;
+  highestRoleToAccessChannel: Roles;
 }
 
 class Channel extends Model<
   ChannelAttributes,
-  Optional<ChannelAttributes, "id">
+  Optional<ChannelAttributes, "id" | "highestRoleToAccessChannel">
 > {
   public id!: string;
   public serverId!: string;
   name!: string;
+  highestRoleToAccessChannel?: Roles;
 }
 
 Channel.init(
@@ -30,6 +38,11 @@ Channel.init(
       allowNull: false,
     },
 
+    highestRoleToAccessChannel: {
+      type: DataTypes.ENUM,
+      values: ["admin", "manager", "employee"],
+      allowNull: true,
+    },
     serverId: {
       type: DataTypes.UUID,
       allowNull: false,
