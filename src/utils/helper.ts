@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import ApiError from "./apiError";
 import { StatusCode } from "./apiResponse";
 import { Request } from "express";
-import { string0To255 } from "aws-sdk/clients/customerprofiles.js";
 
 /**
  * Checks if the hashed password matches the provided plain-text password.

@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import twilio from "twilio";
-import ApiError from "../utils/apiError";
 import {
   checkPassword,
   getAccessToken,
@@ -19,6 +18,7 @@ import {
 import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
 import { RefreshToken } from "../models/refreshModel";
+import ApiError from "../utils/apiError";
 
 // Define a interface for the request body
 interface ReqUserData {
