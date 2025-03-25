@@ -8,12 +8,17 @@ import {
   addANewSalary,
   getAEmployeeSalary,
 } from "../../controllers/server/payrollController";
+import { verifyLoginStatus } from "../../utils/jwtGenerater";
 
 const router = express.Router();
-router.post("/register", registerServer);
-router.get("/getLoggedInUserServer/", getLoggedInUserServer);
-router.post("/joinServer", joinServer);
-router.post("/payroll/addANewSalary", addANewSalary);
-router.get("/payroll/getAEmployeeSalary", getAEmployeeSalary);
+router.post("/register", verifyLoginStatus, registerServer);
+router.get("/getLoggedInUserServer/", verifyLoginStatus, getLoggedInUserServer);
+router.post("/joinServer", verifyLoginStatus, joinServer);
+router.post("/payroll/addANewSalary", verifyLoginStatus, addANewSalary);
+router.get(
+  "/payroll/getAEmployeeSalary",
+  verifyLoginStatus,
+  getAEmployeeSalary
+);
 
 export default router;

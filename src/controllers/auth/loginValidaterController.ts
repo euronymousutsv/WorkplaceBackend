@@ -21,7 +21,7 @@ export const verifyLoginStatus = async (
       throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Access token missing");
     }
 
-    const isAuthorized = await verifyAccessToken(token);
+    const isAuthorized = verifyAccessToken(token);
 
     if (!isAuthorized) {
       throw new ApiError(

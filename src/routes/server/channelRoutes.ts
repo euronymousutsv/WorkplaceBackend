@@ -7,13 +7,18 @@ import {
   getAllChannelForCurrentServer,
   getChannelDetails,
 } from "../../controllers/server/channelController";
+import { verifyLoginStatus } from "../../utils/jwtGenerater";
 
 const router = express.Router();
-router.post("/create", createNewChannel);
-router.get("/getAllChannelForCurrentServer/", getAllChannelForCurrentServer);
-router.delete("/delete", deleteChannel);
-router.post("/addAccessToChannel", addAccessToChannel);
-router.put("/changeAChannelName", changeAChannelName);
-router.get("/getChannelDetails", getChannelDetails);
+router.post("/create", verifyLoginStatus, createNewChannel);
+router.get(
+  "/getAllChannelForCurrentServer/",
+  verifyLoginStatus,
+  getAllChannelForCurrentServer
+);
+router.delete("/delete", verifyLoginStatus, deleteChannel);
+router.post("/addAccessToChannel", verifyLoginStatus, addAccessToChannel);
+router.put("/changeAChannelName", verifyLoginStatus, changeAChannelName);
+router.get("/getChannelDetails", verifyLoginStatus, getChannelDetails);
 
 export default router;

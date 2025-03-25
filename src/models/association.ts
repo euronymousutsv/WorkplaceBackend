@@ -4,6 +4,7 @@ import Chat from "./chatModel";
 import { Employee } from "./employeeModel";
 import { OfficeLocation } from "./officeLocation";
 import { Payroll } from "./payrollModel";
+import { RefreshToken } from "./refreshModel";
 import { Roster } from "./rosterModel";
 import Server from "./serverModel";
 
@@ -30,4 +31,6 @@ Chat.belongsTo(Employee, { foreignKey: "userId" });
 
 OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
 
+RefreshToken.belongsTo(Employee, { foreignKey: "employeeId" });
+Employee.hasOne(RefreshToken, { foreignKey: "employeeId" });
 export default {};

@@ -7,11 +7,12 @@ import {
   getEmployeeAttendance,
   getAllAttendance,
 } from "../controllers/clockStatusController";
+import { verifyLoginStatus } from "../utils/jwtGenerater";
 const router = express.Router();
-router.post("/clockIn", clockIn);
-router.put("/clockOut", clockOut);
-router.post("/startBreak", startBreak);
-router.post("/endBreak", endBreak);
+router.post("/clockIn", verifyLoginStatus, clockIn);
+router.put("/clockOut", verifyLoginStatus, clockOut);
+router.post("/startBreak", verifyLoginStatus, startBreak);
+router.post("/endBreak", verifyLoginStatus, endBreak);
 router.get("/employeeAttendance", getEmployeeAttendance);
 router.get("/allAttendance", getAllAttendance);
 export default router;

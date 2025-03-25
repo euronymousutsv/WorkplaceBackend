@@ -10,6 +10,7 @@ import Chat from "../models/chatModel";
 import Server from "../models/serverModel";
 import Channel from "../models/channelModel";
 import JoinedServer from "../models/joinedServerModel";
+import { RefreshToken } from "../models/refreshModel";
 const syncDatabase = async () => {
   try {
     console.log("🔄 Connecting to the database...");
@@ -24,6 +25,9 @@ const syncDatabase = async () => {
 
     //  console.log("🔄 Recreating tables...");
     await Employee.sync({ alter: true });
+    await RefreshToken.sync({
+      alter: true,
+    });
     await Payroll.sync({ alter: true });
     await AttendanceEvent.sync({ alter: true });
     await OfficeLocation.sync({ alter: true });

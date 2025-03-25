@@ -6,6 +6,8 @@ import Server from "../../models/serverModel";
 import { randomUUID } from "crypto";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
+import { getAccessToken } from "../../utils/helper";
+import { Employee } from "src/models/employeeModel";
 
 const registerServer = async (
   req: Request<
@@ -83,14 +85,15 @@ const joinServer = async (
   req: Request<
     {},
     {},
+    {},
     {
       inviteCode: string;
-      accessToken: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { inviteCode, accessToken } = req.body;
+  const { inviteCode } = req.query;
+  const accessToken = getAccessToken(req);
 
   try {
     if (!inviteCode)
@@ -100,12 +103,6 @@ const joinServer = async (
         "Invide Code cannot be empty"
       );
 
-    if (!accessToken)
-      throw new ApiError(
-        StatusCode.BAD_REQUEST,
-        {},
-        "Access Token cannot be empty."
-      );
     const decoded = verifyAccessToken(accessToken);
     const userId = decoded?.userId;
 
@@ -114,6 +111,15 @@ const joinServer = async (
     });
     if (!searchedServer)
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server not found.");
+
+    const searchUser = await JoinedServer.findOne({ where: { id: userId } });
+    if (searchUser) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "A user can have only one server at a time."
+      );
+    }
 
     const joinServer = await JoinedServer.create({
       id: userId,

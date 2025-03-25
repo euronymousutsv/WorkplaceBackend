@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
-import ApiError from "./apiError.js";
-import { StatusCode } from "./apiResponse.js";
+import ApiError from "./apiError";
+import { StatusCode } from "./apiResponse";
+import { Request } from "express";
+import { string0To255 } from "aws-sdk/clients/customerprofiles.js";
 
 /**
  * Checks if the hashed password matches the provided plain-text password.
@@ -107,4 +109,15 @@ export function validatePhoneNumber(phoneNumer: string): boolean {
   console.log(newNum);
   if (!isNaN(newNum)) return true;
   else return false;
+}
+
+export function getAccessToken(req: Request): string {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Extract token part
+
+  if (!token) {
+    throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Access token missing");
+  }
+
+  return token;
 }

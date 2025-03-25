@@ -4,6 +4,7 @@ import twilio from "twilio";
 import ApiError from "../utils/apiError";
 import {
   checkPassword,
+  getAccessToken,
   validateEmail,
   validatePasswordSecurity,
   validatePhoneNumber,
@@ -17,6 +18,7 @@ import {
 } from "../utils/jwtGenerater";
 import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
+import { RefreshToken } from "../models/refreshModel";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -196,23 +198,28 @@ export const loginUser = async (
     // refresh token is returned at index 0 & jti at 1.
     const refreshToken = genetated[0];
 
-    // const jti = genetated[1];
+    const jti = genetated[1];
     // a token table will be created to store a jti which will be used to validate a refresh token
 
-    // const tokenTable = refreshToken.create({
-    //   user: searchedUser,
-    //   jti: jti,
-    // });
+    const searchedToken = await RefreshToken.findOne({
+      where: { employeeId: searchedUser.id },
+    });
+    if (searchedToken) {
+      await searchedToken.destroy();
+    }
 
-    // tokenTable.save();
+    const tokenTable = await RefreshToken.create({
+      employeeId: searchedUser.id,
+      jti: jti,
+    });
 
-    // if (!tokenTable) {
-    //   throw new ApiError(
-    //     StatusCode.INTERNAL_SERVER_ERROR,
-    //     {},
-    //     "Unable to store token in the db."
-    //   );
-    // }
+    if (!tokenTable) {
+      throw new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        "Unable to store token in the db."
+      );
+    }
 
     res.status(StatusCode.OK).json(
       new ApiResponse(
@@ -241,66 +248,6 @@ export const loginUser = async (
       res.status(500).json(new ApiError(500, error, "Internal Server Error"));
     }
     return;
-  }
-};
-
-// send a verification code
-// This portion needs review
-export const verificationCode = async (
-  req: Request<{}, {}, { phoneNumber: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const { phoneNumber } = req.body;
-
-    if (!phoneNumber) {
-      throw new ApiError(400, {}, "Phone Number is required!");
-    }
-    const valid = validatePhoneNumber(phoneNumber);
-    if (!valid) throw new ApiError(400, {}, "Invalid Phone Number");
-    // Ensure email is provided
-
-    const client = twilio(accountSid, authToken);
-
-    // Generate a 6-character verification code
-    const generateVerificationCode = (): string =>
-      randomBytes(3).toString("hex").toUpperCase().slice(0, 6);
-
-    // Send verification Code
-    const sendVerificationPhone = async (toPhone: string): Promise<void> => {
-      const verificationCode = generateVerificationCode();
-
-      // Send SMS using Twilio
-      const message = await client.messages.create({
-        body: `Your verification code is: ${generateVerificationCode()}`,
-        from: twilioPhoneNumber,
-        to: phoneNumber,
-      });
-
-      if (!message) {
-        throw new ApiError(500, {}, "Error sending Verification Code");
-      }
-
-      console.log("OTP sent successfully:", message.sid);
-
-      const cacheSuccess = otpCache.set(phoneNumber, verificationCode);
-      console.log(phoneNumber);
-
-      if (!cacheSuccess) {
-        throw new ApiError(500, {}, "Error storing Verification Code");
-      }
-
-      console.log("OTP sent successfully:");
-    };
-    sendVerificationPhone(phoneNumber);
-
-    res.status(200).json(new ApiResponse(200, {}, "OTP sent successfully"));
-  } catch (error) {
-    if (error instanceof ApiError) {
-      res.status(error.statusCode).json(error);
-    } else {
-      res.status(500).json({ success: false, error: "Failed to send OTP" });
-    }
   }
 };
 
@@ -351,6 +298,8 @@ enum PersonalInfoEnum {
   PROFILEIMAGE = "profileImage",
   PASSWORD = "password",
 }
+
+// function to edit current user name, and other details
 export const editCurrentUserDetail = async (
   req: Request<
     {},
@@ -359,8 +308,7 @@ export const editCurrentUserDetail = async (
   >,
   res: Response
 ) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = getAccessToken(req);
   const { password, editType, newDetail } = req.body;
   try {
     if (!token) {
@@ -481,10 +429,9 @@ export const editCurrentUserDetail = async (
   }
 };
 
+// function to get current user details
 export const getCurrentUserDetails = async (req: Request, res: Response) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
+  const token = getAccessToken(req);
   try {
     const decodedToken = verifyAccessToken(token || "");
 
@@ -522,6 +469,100 @@ export const getCurrentUserDetails = async (req: Request, res: Response) => {
             "SOmething went wrong when fetching user info"
           )
         );
+    }
+  }
+};
+
+export const verificationCode = async (
+  req: Request<{}, {}, { phoneNumber: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+      throw new ApiError(400, {}, "Phone Number is required!");
+    }
+    const valid = validatePhoneNumber(phoneNumber);
+    if (!valid) throw new ApiError(400, {}, "Invalid Phone Number");
+    // Ensure email is provided
+
+    const client = twilio(accountSid, authToken);
+
+    // Generate a 6-character verification code
+    const generateVerificationCode = (): string =>
+      randomBytes(3).toString("hex").toUpperCase().slice(0, 6);
+
+    // Send verification Code
+    const sendVerificationPhone = async (toPhone: string): Promise<void> => {
+      const verificationCode = generateVerificationCode();
+
+      // Send SMS using Twilio
+      const message = await client.messages.create({
+        body: `Your verification code is: ${generateVerificationCode()}`,
+        from: twilioPhoneNumber,
+        to: phoneNumber,
+      });
+
+      if (!message) {
+        throw new ApiError(500, {}, "Error sending Verification Code");
+      }
+
+      console.log("OTP sent successfully:", message.sid);
+
+      const cacheSuccess = otpCache.set(phoneNumber, verificationCode);
+      console.log(phoneNumber);
+
+      if (!cacheSuccess) {
+        throw new ApiError(500, {}, "Error storing Verification Code");
+      }
+
+      console.log("OTP sent successfully:");
+    };
+    sendVerificationPhone(phoneNumber);
+
+    res.status(200).json(new ApiResponse(200, {}, "OTP sent successfully"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res.status(500).json({ success: false, error: "Failed to send OTP" });
+    }
+  }
+};
+
+export const logOutUSer = async (
+  req: Request<{}, {}, {}>,
+  res: Response
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken(req);
+    const isAuthorized = verifyAccessToken(accessToken);
+
+    if (!isAuthorized) {
+      throw new ApiError(
+        StatusCode.UNAUTHORIZED,
+        {},
+        "Invalid or Expired token"
+      );
+    }
+
+    const userId = isAuthorized.userId;
+    const searchedUserToken = await RefreshToken.findOne({
+      where: { employeeId: userId },
+    });
+
+    if (!searchedUserToken) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Token Not Found");
+    }
+    searchedUserToken.destroy();
+
+    res.status(200).json(new ApiResponse(200, {}, "Logged out Successfully"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res.status(500).json({ success: false, error: "Failed to logout." });
     }
   }
 };
