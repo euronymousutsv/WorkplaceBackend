@@ -3,6 +3,9 @@ import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import { Payroll } from "../../models/payrollModel";
+import { checkPassword, getAccessToken } from "src/utils/helper";
+import { Employee } from "src/models/employeeModel";
+import Server from "src/models/serverModel";
 
 // change accessToken to userId
 export const addANewSalary = async (

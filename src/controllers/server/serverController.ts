@@ -6,7 +6,7 @@ import Server from "../../models/serverModel";
 import { randomUUID } from "crypto";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
-import { getAccessToken } from "../../utils/helper";
+import { checkPassword, getAccessToken } from "../../utils/helper";
 import { Employee } from "src/models/employeeModel";
 
 const registerServer = async (
@@ -39,8 +39,14 @@ const registerServer = async (
       );
     }
 
-    //todo :: In future : make sure an owner can only have one server
-    // add conditions
+    const searchUser = await JoinedServer.findOne({ where: { id: ownerId } });
+    if (searchUser) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "A user can have only one server at a time."
+      );
+    }
 
     const inviteCode = randomUUID().slice(0, 8);
 
@@ -180,6 +186,180 @@ const getLoggedInUserServer = async (
     res
       .status(201)
       .json(new ApiResponse(StatusCode.CREATED, joinedServer!, "Server found"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// change the current server owner of a server.
+export const changeServerOwnership = async (
+  req: Request<
+    {},
+    {},
+    {
+      newOwnerId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  try {
+    // get newOwnerId, password and accessToken from the request
+    const { newOwnerId } = req.body;
+    const password = req.headers["user-password"] as string;
+
+    // verify & decode accessToken
+    const validateAccessToken = verifyAccessToken(getAccessToken(req));
+
+    if (!validateAccessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+
+    if (!newOwnerId || !password)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {
+          newOwnerId: "",
+          password: "",
+          Detail: "Either of them is missing",
+        },
+        "newOwnerId or password cannot be empty"
+      );
+
+    const userId = validateAccessToken.userId;
+
+    // search both user and server with the decode user id.
+
+    const searchedServer = await Server.findOne({ where: { ownerId: userId } });
+    const searchedUser = await Employee.findOne({ where: { id: userId } });
+    if (!searchedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server not found");
+
+    if (!searchedUser)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "User not found");
+
+    if (searchedServer.ownerId !== searchedUser.id)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Current User and Server Owner doesn't match"
+      );
+
+    // check if the password details are correct.
+    const validatePassword = await checkPassword(
+      password,
+      searchedUser.password!
+    );
+
+    if (!validatePassword)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "User credencial not matched."
+      );
+
+    // Finally, Change and save the newOwnerId.
+    searchedServer.ownerId = newOwnerId;
+    const saved = searchedServer.save();
+
+    if (!saved)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Unable to Change the ownership"
+      );
+
+    res
+      .status(201)
+      .json(new ApiResponse(StatusCode.OK, {}, "Server Owner Changed"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// Delete a server
+export const deleteServer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // get newOwnerId, password and accessToken from the request
+    const password = req.headers["user-password"] as string;
+
+    // verify & decode accessToken
+    const validateAccessToken = verifyAccessToken(getAccessToken(req));
+
+    if (!validateAccessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+
+    const userId = validateAccessToken.userId;
+
+    // search both user and server with the decode user id.
+
+    const searchedServer = await Server.findOne({ where: { ownerId: userId } });
+    const searchedUser = await Employee.findOne({ where: { id: userId } });
+    if (!searchedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server not found");
+
+    if (!searchedUser)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "User not found");
+
+    if (searchedServer.ownerId !== searchedUser.id)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Current User and Server Owner doesn't match"
+      );
+
+    // check if the password details are correct.
+    const validatePassword = await checkPassword(
+      password,
+      searchedUser.password!
+    );
+
+    if (!validatePassword)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "User credencial not matched."
+      );
+
+    // Finally, delete the server.
+    searchedServer.destroy();
+
+    res
+      .status(201)
+      .json(new ApiResponse(StatusCode.OK, {}, "Server Deleted Successfully"));
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);
