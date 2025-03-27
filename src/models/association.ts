@@ -6,6 +6,7 @@ import { OfficeLocation } from "./officeLocation";
 import { Payroll } from "./payrollModel";
 import { RefreshToken } from "./refreshModel";
 import { Roster } from "./rosterModel";
+import Document from "./documentModel";
 import Server from "./serverModel";
 
 // Define associations AFTER models are imported
@@ -33,4 +34,11 @@ OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
 
 RefreshToken.belongsTo(Employee, { foreignKey: "employeeId" });
 Employee.hasOne(RefreshToken, { foreignKey: "employeeId" });
+
+// employeeModel.ts
+Employee.hasMany(Document, { foreignKey: "employeeId" });
+
+// documentModel.ts
+Document.belongsTo(Employee, { foreignKey: "employeeId" });
+
 export default {};
