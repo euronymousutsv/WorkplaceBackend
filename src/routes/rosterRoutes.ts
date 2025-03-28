@@ -10,7 +10,7 @@ import {
   getAllOffices,
   createAOffice,
 } from "../controllers/rosterController";
-import { verifyLoginStatus } from "../utils/jwtGenerater";
+import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 
 const router = express.Router();
 router.post("/createShift", createShift);

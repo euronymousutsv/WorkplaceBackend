@@ -8,7 +8,8 @@ import {
   validateVerificationCode,
   verificationCode,
 } from "../controllers/authController";
-import { refreshToken, verifyLoginStatus } from "../utils/jwtGenerater";
+import { refreshToken } from "../utils/jwtGenerater";
+import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 
 const router = express.Router();
 // Test route to verify registration

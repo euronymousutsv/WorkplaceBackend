@@ -9,6 +9,8 @@ interface RosterAttributes {
   officeId: string;
   startTime: Date;
   endTime: Date;
+  date: Date;
+  description: String;
 }
 
 interface RosterCreationAttributes
@@ -26,6 +28,8 @@ class Roster
   public officeId!: string;
   public startTime!: Date;
   public endTime!: Date;
+  public date!: Date;
+  public description!: String;
 }
 
 Roster.init(
@@ -54,6 +58,14 @@ Roster.init(
     endTime: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

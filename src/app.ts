@@ -25,6 +25,9 @@ app.use(
 app.use(bodyParser.json());
 
 // Routes
+app.get("/", (req, res) => {
+  res.send("<h1>WorkHive Api is working </h1>");
+});
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);

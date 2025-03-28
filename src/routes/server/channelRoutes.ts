@@ -7,7 +7,7 @@ import {
   getAllChannelForCurrentServer,
   getChannelDetails,
 } from "../../controllers/server/channelController";
-import { verifyLoginStatus } from "../../utils/jwtGenerater";
+import { verifyLoginStatus } from "../../middleware/verifyLoginMiddleware";
 
 const router = express.Router();
 router.post("/create", verifyLoginStatus, createNewChannel);

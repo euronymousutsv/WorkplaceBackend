@@ -14,7 +14,8 @@ const createShift = async (
   req: Request<{}, {}, RosterAttributes>,
   res: Response
 ): Promise<void> => {
-  const { employeeId, officeId, startTime, endTime } = req.body;
+  const { employeeId, officeId, startTime, endTime, date, description } =
+    req.body;
 
   try {
     // Ensure employee and office exist
@@ -31,6 +32,8 @@ const createShift = async (
       officeId,
       startTime,
       endTime,
+      date,
+      description,
     });
 
     res.status(201).json({ message: "Shift created successfully", shift });
@@ -129,7 +132,7 @@ const autoAssignShifts = async (
   req: Request<{}, {}, RosterAttributes>,
   res: Response
 ) => {
-  const { officeId, startTime, endTime } = req.body;
+  const { officeId, startTime, endTime, date, description } = req.body;
 
   try {
     // Find employees who are not already assigned to a shift at this time
@@ -156,6 +159,8 @@ const autoAssignShifts = async (
       officeId,
       startTime,
       endTime,
+      date,
+      description,
     });
 
     res

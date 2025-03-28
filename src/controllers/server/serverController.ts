@@ -8,6 +8,7 @@ import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
 import { checkPassword, getAccessToken } from "../../utils/helper";
 import { Employee } from "../../models/employeeModel";
+import { Roles } from "../../models/channelModel";
 
 const registerServer = async (
   req: Request<
@@ -418,6 +419,94 @@ export const kickEmployee = async (
           StatusCode.CREATED,
           {},
           ` ${searchedUser.id} Kicked Successfully`
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// Update users role
+export const updateRole = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      userId: string;
+      role: Roles;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  try {
+    const { userId, role } = req.query;
+
+    if (!userId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "" },
+        "userId cannot be empty"
+      );
+
+    if (!role)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "" },
+        "Role cannot be empty"
+      );
+
+    if (!Object.values(Roles).includes(role)) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "", possibleRoles: Roles },
+        "The role is not valid"
+      );
+    }
+
+    // search the user
+    const searchedUser = await Employee.findOne({ where: { id: userId } });
+    const token = getAccessToken(req);
+    const currentUserRole = verifyAccessToken(token)?.role;
+
+    if (
+      currentUserRole?.toLocaleLowerCase() != Roles.ADMIN.toLocaleLowerCase()
+    ) {
+      console.log(currentUserRole);
+      throw new ApiError(
+        StatusCode.FORBIDDEN,
+        {},
+        "Sorry, You don't have enough permission"
+      );
+    }
+
+    if (!searchedUser)
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "User not Found");
+    searchedUser.role = role;
+    const savedUser = searchedUser.save();
+
+    if (!savedUser)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to save User");
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          {},
+          `${searchedUser.firstName}, is now a ${role}`
         )
       );
   } catch (error) {

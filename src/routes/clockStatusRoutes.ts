@@ -7,7 +7,8 @@ import {
   getEmployeeAttendance,
   getAllAttendance,
 } from "../controllers/clockStatusController";
-import { verifyLoginStatus } from "../utils/jwtGenerater";
+import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
+
 const router = express.Router();
 router.post("/clockIn", verifyLoginStatus, clockIn);
 router.put("/clockOut", verifyLoginStatus, clockOut);
