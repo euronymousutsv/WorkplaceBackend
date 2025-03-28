@@ -174,8 +174,38 @@ export const createDocument = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create document" });
   }
 };
+export const updateDocument = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { documentType, documentNumber, issueDate, expiryDate } = req.body;
+
+  try {
+    // Find the document
+    const document = await Document.findByPk(id);
+    if (!document) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+
+    // Update document fields
+    document.documentType = documentType ?? document.documentType;
+    document.documentid = documentNumber ?? document.documentid;
+    document.issueDate = issueDate ?? document.issueDate;
+    document.expiryDate = expiryDate ?? document.expiryDate;
+
+    await document.save();
+
+    res.status(200).json({
+      message: "Document updated successfully",
+      document,
+    });
+  } catch (error) {
+    console.error("Error updating document:", error);
+    res.status(500).json({ error: "Failed to update document" });
+  }
+};
 
 module.exports = {
+  updateDocument,
   createDocument,
   getDocumentStatistics,
   getWorkersWithExpiredDocuments,
