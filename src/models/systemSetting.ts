@@ -54,7 +54,7 @@ SystemSetting.init(
     sequelize,
     modelName: "SystemSetting",
     tableName: "system_settings",
-    schema: "workplacedb",
+    //schema: "workplacedb",
     timestamps: false,
   }
 );

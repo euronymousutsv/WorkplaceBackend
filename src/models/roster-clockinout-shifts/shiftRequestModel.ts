@@ -111,7 +111,7 @@ ShiftRequest.init(
     sequelize,
     modelName: "ShiftRequest",
     tableName: "shift_requests",
-    schema: "workplacedb",
+    // schema: "workplacedb",
     timestamps: false,
   }
 );

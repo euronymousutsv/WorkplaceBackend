@@ -73,7 +73,7 @@ TimeOff.init(
     sequelize,
     modelName: "TimeOff",
     tableName: "time_off",
-    schema: "workplacedb",
+    // schema: "workplacedb",
     timestamps: false,
   }
 );

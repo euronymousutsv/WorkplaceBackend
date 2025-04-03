@@ -1,6 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
-
+import { QueryTypes } from "sequelize";
 interface EmployeeAttributes {
   id: string;
   username: string;
@@ -33,6 +33,7 @@ interface EmployeeCreationAttributes
     | "createdAt"
     | "googleId"
     | "employmentStatus"
+    | "profileImage"
   > {}
 
 class Employee
@@ -59,20 +60,69 @@ class Employee
   public hireDate!: Date;
   public createdAt?: Date;
 }
-const checkEnumExists = async () => {
-  const [results] = await sequelize.query(
-    `SELECT 1 FROM pg_type WHERE typname = 'enum_employee_role';`
+// const checkEnumExists = async () => {
+// const [results] = await sequelize.query(
+//   `SELECT 1 FROM pg_type WHERE typname = 'enum_employee_role';`
+// );
+// return results.length > 0;
+// };
+// async () => {
+// const enumExists = await checkEnumExists();
+// if (!enumExists) {
+//   await sequelize.query(
+//     "CREATE TYPE enum_employee_role AS ENUM ('admin','employee','manager');"
+//   );
+// }
+// };
+
+const checkEnumExists = async (enumName: string, schema: string = "public") => {
+  const results = await sequelize.query(
+    `SELECT 1
+     FROM pg_type t
+     JOIN pg_namespace n ON n.oid = t.typnamespace
+     WHERE t.typname = :enumName AND n.nspname = :schemaName;`,
+    {
+      replacements: { enumName, schemaName: schema },
+      type: QueryTypes.SELECT, // ✅ correct fix
+    }
   );
-  return results.length > 0;
+
+  return (results as any[]).length > 0;
 };
-async () => {
-  const enumExists = await checkEnumExists();
-  if (!enumExists) {
-    await sequelize.query(
-      "CREATE TYPE enum_employee_role AS ENUM ('admin','employee','manager');"
-    );
+
+(async () => {
+  const schema = "production";
+
+  const enumsToCreate = [
+    {
+      name: "employee_role",
+      values: ["admin", "employee", "manager"],
+    },
+    {
+      name: "employee_type",
+      values: ["full-time", "part-time", "casual"],
+    },
+    {
+      name: "employee_employment_status",
+      values: ["Active", "Inactive"],
+    },
+  ];
+
+  for (const enumDef of enumsToCreate) {
+    const exists = await checkEnumExists(enumDef.name, schema);
+    if (!exists) {
+      await sequelize.query(
+        `CREATE TYPE ${schema}.${enumDef.name} AS ENUM (${enumDef.values
+          .map((v) => `'${v}'`)
+          .join(", ")});`
+      );
+      console.log(`✅ Created enum ${schema}.${enumDef.name}`);
+    } else {
+      console.log(`ℹ️ Enum ${schema}.${enumDef.name} already exists`);
+    }
   }
-};
+})();
+
 Employee.init(
   {
     id: {
@@ -151,7 +201,7 @@ Employee.init(
     sequelize,
     modelName: "Employee",
     tableName: "employee",
-    schema: "workplacedb", // Use the correct schema
+    schema: "production", // Use the correct schema
     timestamps: false,
   }
 );

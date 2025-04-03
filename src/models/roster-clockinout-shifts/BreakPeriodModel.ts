@@ -96,7 +96,7 @@ BreakPeriod.init(
     sequelize,
     modelName: "BreakPeriod",
     tableName: "break_periods",
-    schema: "workplacedb",
+    // schema: "workplacedb",
     timestamps: false,
   }
 );

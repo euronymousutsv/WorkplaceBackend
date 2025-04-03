@@ -112,7 +112,7 @@ Shift.init(
     sequelize,
     modelName: "Shift",
     tableName: "shifts",
-    schema: "workplacedb",
+    //schema: "workplacedb",
     timestamps: false,
   }
 );

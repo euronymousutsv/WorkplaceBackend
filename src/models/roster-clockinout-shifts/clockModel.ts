@@ -79,7 +79,7 @@ ClockInOut.init(
     sequelize,
     modelName: "ClockInOut",
     tableName: "clock_in_out",
-    schema: "workplacedb",
+    // schema: "workplacedb",
     timestamps: false,
   }
 );

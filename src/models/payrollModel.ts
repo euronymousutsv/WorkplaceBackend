@@ -88,7 +88,7 @@ Payroll.init(
     sequelize,
     modelName: "Payroll",
     tableName: "payroll",
-    schema: "workplacedb", // Use the correct schema
+    // schema: "workplacedb", // Use the correct schema
     timestamps: false,
   }
 );

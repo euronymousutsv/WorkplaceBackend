@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
         rejectUnauthorized: false, // Allow self-signed SSL
       },
     },
-    schema: "workplacedb",
+    schema: "production",
   }
 );
 

@@ -91,7 +91,7 @@ EmployeeAvailability.init(
     sequelize,
     modelName: "EmployeeAvailability",
     tableName: "employee_availability",
-    schema: "workplacedb",
+    // schema: "workplacedb",
     timestamps: false,
   }
 );
