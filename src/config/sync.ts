@@ -19,6 +19,7 @@ import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestMod
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
+import SystemSetting from "src/models/systemSettingModel";
 const syncDatabase = async () => {
   try {
     console.log("🔄 Connecting to the database...");
@@ -55,6 +56,7 @@ const syncDatabase = async () => {
     await Shift.sync({ alter: true });
     await TimeOff.sync({ alter: true });
     await PenaltyRate.sync({ alter: true });
+    await SystemSetting.sync({ alter: true });
     console.log("✅ Database synced successfully!");
   } catch (error) {
     console.error("❌ Error syncing database:", error);
