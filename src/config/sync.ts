@@ -18,6 +18,7 @@ import { EmployeeAvailability } from "../models/roster-clockinout-shifts/employe
 import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
+import { PenaltyRate } from "../models/penaltyRates";
 const syncDatabase = async () => {
   try {
     console.log("🔄 Connecting to the database...");
@@ -53,6 +54,7 @@ const syncDatabase = async () => {
     await ShiftRequest.sync({ alter: true });
     await Shift.sync({ alter: true });
     await TimeOff.sync({ alter: true });
+    await PenaltyRate.sync({ alter: true });
     console.log("✅ Database synced successfully!");
   } catch (error) {
     console.error("❌ Error syncing database:", error);
