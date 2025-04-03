@@ -6,6 +6,12 @@ import { EmployeeAvailability } from "../models/roster-clockinout-shifts/employe
 import { Op } from "sequelize";
 import { insertShiftSchema } from "src/validation";
 import { nullable } from "zod";
+import { BreakPeriod } from "../models/roster-clockinout-shifts/BreakPeriodModel";
+import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
+import { PenaltyRate } from "../models/penaltyRates";
+import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
+
 // GET /shifts/:id
 
 export const getAllShifts = async (
@@ -330,5 +336,373 @@ export const getEmployeeWithAvailability = async (
   } catch (error) {
     console.error("getEmployeeWithAvailability error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// --- Break Period ---
+export const getBreakPeriod = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const record = await BreakPeriod.findByPk(req.params.id);
+    if (!record) {
+      res.status(404).json({ message: "Break period not found" });
+
+      return;
+    }
+    res.json(record);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBreakPeriodsByShiftId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await BreakPeriod.findAll({
+      where: { shiftId: req.params.shiftId },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBreakPeriodsByEmployeeId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await BreakPeriod.findAll({
+      where: { employeeId: req.params.employeeId },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createBreakPeriod = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const record = await BreakPeriod.create({
+      ...req.body,
+      createdAt: new Date(),
+    });
+    res.status(201).json(record);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBreakPeriod = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [count, rows] = await BreakPeriod.update(req.body, {
+      where: { id: req.params.id },
+      returning: true,
+    });
+    if (count === 0) {
+      res.status(404).json({ message: "Break period not found" });
+      return;
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- Clock In/Out ---
+export const getClockInOut = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const clock = await ClockInOut.findByPk(req.params.id);
+    if (!clock) {
+      res.status(404).json({ message: "Record not found" });
+      return;
+    }
+    res.json(clock);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getClockInOutByEmployeeId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await ClockInOut.findAll({
+      where: { employeeId: req.params.employeeId },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createClockInOut = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const record = await ClockInOut.create({
+      ...req.body,
+      timestamp: new Date(),
+    });
+    res.status(201).json(record);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getLatestClockByEmployeeId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await ClockInOut.findAll({
+      where: { employeeId: req.params.employeeId },
+      order: [["timestamp", "DESC"]],
+      limit: 1,
+    });
+    res.json(records[0] || null);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- Penalty Rate ---
+export const getPenaltyRate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const rate = await PenaltyRate.findByPk(req.params.id);
+    if (!rate) {
+      res.status(404).json({ message: "Penalty rate not found" });
+      return;
+    }
+    res.json(rate);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllPenaltyRates = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const rates = await PenaltyRate.findAll();
+    res.json(rates);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createPenaltyRate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const rate = await PenaltyRate.create({
+      ...req.body,
+      createdAt: new Date(),
+    });
+    res.status(201).json(rate);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePenaltyRate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [count, rows] = await PenaltyRate.update(req.body, {
+      where: { id: req.params.id },
+      returning: true,
+    });
+    if (count === 0) {
+      res.status(404).json({ message: "Penalty rate not found" });
+      return;
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- Time Off ---
+export const getTimeOff = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const timeOff = await TimeOff.findByPk(req.params.id);
+    if (!timeOff) {
+      res.status(404).json({ message: "Time off not found" });
+      return;
+    }
+    res.json(timeOff);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTimeOffByEmployeeId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await TimeOff.findAll({
+      where: { employeeId: req.params.employeeId },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createTimeOff = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const record = await TimeOff.create({ ...req.body, createdAt: new Date() });
+    res.status(201).json(record);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTimeOff = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [count, rows] = await TimeOff.update(req.body, {
+      where: { id: req.params.id },
+      returning: true,
+    });
+    if (count === 0) {
+      res.status(404).json({ message: "Time off not found" });
+      return;
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- Shift Request ---
+export const getShiftRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const request = await ShiftRequest.findByPk(req.params.id);
+    if (!request) {
+      res.status(404).json({ message: "Shift request not found" });
+      return;
+    }
+    res.json(request);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getShiftRequestsByEmployeeId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await ShiftRequest.findAll({
+      where: { employeeId: req.params.employeeId },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPendingShiftRequests = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const records = await ShiftRequest.findAll({
+      where: { status: "pending" },
+    });
+    res.json(records);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createShiftRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const record = await ShiftRequest.create({
+      ...req.body,
+      createdAt: new Date(),
+    });
+    res.status(201).json(record);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateShiftRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [count, rows] = await ShiftRequest.update(req.body, {
+      where: { id: req.params.id },
+      returning: true,
+    });
+    if (count === 0) {
+      res.status(404).json({ message: "Shift request not found" });
+      return;
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
   }
 };
