@@ -1,8 +1,9 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
+import { Employee } from "../employeeModel";
 export interface TimeOffAttributes {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   startDate: Date;
   endDate: Date;
   type: string; // e.g., 'annual_leave', 'sick_leave'
@@ -18,8 +19,8 @@ export class TimeOff
   extends Model<TimeOffAttributes, TimeOffCreationAttributes>
   implements TimeOffAttributes
 {
-  public id!: number;
-  public employeeId!: number;
+  public id!: string;
+  public employeeId!: string;
   public startDate!: Date;
   public endDate!: Date;
   public type!: string;
@@ -31,14 +32,17 @@ export class TimeOff
 TimeOff.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
+
     startDate: {
       type: DataTypes.DATE,
       allowNull: false,

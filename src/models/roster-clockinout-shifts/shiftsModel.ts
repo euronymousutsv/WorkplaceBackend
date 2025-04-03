@@ -1,9 +1,11 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
+import { Employee } from "../employeeModel";
+import { OfficeLocation } from "../officeLocation";
 export interface ShiftAttributes {
-  id: number;
-  employeeId?: number;
-  locationId?: number;
+  id: string;
+  employeeId?: string;
+  locationId?: string;
   startTime: Date;
   endTime: Date;
   status: "pending" | "assigned" | "active" | "completed" | "cancelled";
@@ -31,9 +33,9 @@ export class Shift
   extends Model<ShiftAttributes, ShiftCreationAttributes>
   implements ShiftAttributes
 {
-  public id!: number;
-  public employeeId?: number;
-  public locationId?: number;
+  public id!: string;
+  public employeeId?: string;
+  public locationId?: string;
   public startTime!: Date;
   public endTime!: Date;
   public status!: "pending" | "assigned" | "active" | "completed" | "cancelled";
@@ -47,17 +49,21 @@ export class Shift
 Shift.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     locationId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
+      references: { model: OfficeLocation, key: "id" },
+      onDelete: "CASCADE",
     },
     startTime: {
       type: DataTypes.DATE,
@@ -88,8 +94,10 @@ Shift.init(
       defaultValue: "none",
     },
     parentShiftId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
+      references: { model: Shift, key: "id" },
+      onDelete: "CASCADE",
     },
     repeatEndDate: {
       type: DataTypes.DATE,

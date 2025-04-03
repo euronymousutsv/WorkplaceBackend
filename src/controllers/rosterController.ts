@@ -373,11 +373,13 @@ export const createAOffice = async (
       lat: string;
       long: string;
       radius: string;
+      address: string;
+      name: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { serverId, lat, long, radius } = req.query;
+  const { serverId, lat, long, radius, address, name } = req.query;
 
   try {
     if (!serverId)
@@ -422,6 +424,8 @@ export const createAOffice = async (
       longitude,
       radius: radiusValue,
       serverId,
+      address,
+      name,
     });
 
     res

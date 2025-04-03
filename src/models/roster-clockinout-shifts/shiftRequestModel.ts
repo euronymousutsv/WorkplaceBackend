@@ -1,16 +1,17 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
-
+import { Employee } from "../employeeModel";
+import { OfficeLocation } from "../officeLocation";
 export interface ShiftRequestAttributes {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   requestDate: Date;
   startTime: Date;
   endTime: Date;
-  locationId?: number;
+  locationId?: string;
   status: "pending" | "approved" | "rejected";
   notes?: string;
-  managerId?: number;
+  managerId?: string;
   responseNotes?: string;
   responseDate?: Date;
   createdAt?: Date;
@@ -32,15 +33,15 @@ export class ShiftRequest
   extends Model<ShiftRequestAttributes, ShiftRequestCreationAttributes>
   implements ShiftRequestAttributes
 {
-  public id!: number;
-  public employeeId!: number;
+  public id!: string;
+  public employeeId!: string;
   public requestDate!: Date;
   public startTime!: Date;
   public endTime!: Date;
-  public locationId?: number;
+  public locationId?: string;
   public status!: "pending" | "approved" | "rejected";
   public notes?: string;
-  public managerId?: number;
+  public managerId?: string;
   public responseNotes?: string;
   public responseDate?: Date;
   public createdAt?: Date;
@@ -49,13 +50,15 @@ export class ShiftRequest
 ShiftRequest.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     requestDate: {
       type: DataTypes.DATE,
@@ -70,8 +73,11 @@ ShiftRequest.init(
       allowNull: false,
     },
     locationId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+
       allowNull: true,
+      references: { model: OfficeLocation, key: "id" },
+      onDelete: "CASCADE",
     },
     status: {
       type: DataTypes.ENUM("pending", "approved", "rejected"),
@@ -83,8 +89,10 @@ ShiftRequest.init(
       allowNull: true,
     },
     managerId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     responseNotes: {
       type: DataTypes.TEXT,

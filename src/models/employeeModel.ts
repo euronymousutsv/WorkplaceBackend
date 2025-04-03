@@ -27,7 +27,12 @@ interface EmployeeAttributes {
 interface EmployeeCreationAttributes
   extends Optional<
     EmployeeAttributes,
-    "id" | "managerId" | "contractHours" | "createdAt" | "googleId"
+    | "id"
+    | "managerId"
+    | "contractHours"
+    | "createdAt"
+    | "googleId"
+    | "employmentStatus"
   > {}
 
 class Employee

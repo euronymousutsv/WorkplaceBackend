@@ -1,8 +1,9 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
+import { Employee } from "../employeeModel";
 export interface EmployeeAvailabilityAttributes {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   dayOfWeek:
     | "monday"
     | "tuesday"
@@ -27,8 +28,8 @@ export class EmployeeAvailability
   >
   implements EmployeeAvailabilityAttributes
 {
-  public id!: number;
-  public employeeId!: number;
+  public id!: string;
+  public employeeId!: string;
   public dayOfWeek!:
     | "monday"
     | "tuesday"
@@ -46,13 +47,15 @@ export class EmployeeAvailability
 EmployeeAvailability.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     dayOfWeek: {
       type: DataTypes.ENUM(

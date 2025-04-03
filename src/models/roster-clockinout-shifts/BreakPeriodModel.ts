@@ -1,9 +1,11 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
+import { Employee } from "../employeeModel";
+import { Shift } from "./shiftsModel";
 export interface BreakPeriodAttributes {
-  id: number;
-  employeeId: number;
-  shiftId: number;
+  id: string;
+  employeeId: string;
+  shiftId: string;
   startTime: Date;
   endTime?: Date;
   breakType: "lunch" | "rest" | "personal";
@@ -24,9 +26,9 @@ export class BreakPeriod
   extends Model<BreakPeriodAttributes, BreakPeriodCreationAttributes>
   implements BreakPeriodAttributes
 {
-  public id!: number;
-  public employeeId!: number;
-  public shiftId!: number;
+  public id!: string;
+  public employeeId!: string;
+  public shiftId!: string;
   public startTime!: Date;
   public endTime?: Date;
   public breakType!: "lunch" | "rest" | "personal";
@@ -40,17 +42,21 @@ export class BreakPeriod
 BreakPeriod.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     shiftId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Shift, key: "id" },
+      onDelete: "CASCADE",
     },
     startTime: {
       type: DataTypes.DATE,

@@ -1,10 +1,11 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
-
+import { Employee } from "../employeeModel";
+import { Shift } from "./shiftsModel";
 export interface ClockInOutAttributes {
-  id: number;
-  employeeId: number;
-  shiftId?: number;
+  id: string;
+  employeeId: string;
+  shiftId?: string;
   timestamp: Date;
   status: "in" | "out" | "break-start" | "break-end";
   latitude?: string;
@@ -22,9 +23,9 @@ export class ClockInOut
   extends Model<ClockInOutAttributes, ClockInOutCreationAttributes>
   implements ClockInOutAttributes
 {
-  public id!: number;
-  public employeeId!: number;
-  public shiftId?: number;
+  public id!: string;
+  public employeeId!: string;
+  public shiftId?: string;
   public timestamp!: Date;
   public status!: "in" | "out" | "break-start" | "break-end";
   public latitude?: string;
@@ -35,17 +36,21 @@ export class ClockInOut
 ClockInOut.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     employeeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     shiftId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Shift, key: "id" },
+      onDelete: "CASCADE",
     },
     timestamp: {
       type: DataTypes.DATE,
