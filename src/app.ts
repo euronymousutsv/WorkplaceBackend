@@ -15,7 +15,11 @@ import chatRouter from "./routes/server/chatRoutes";
 import { app, server } from "./config/socket";
 import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
-
+import businessRoutes from "./routes/businessLogicRoutes";
+import {
+  validateGeolocation,
+  validateGeolocationHandler,
+} from "./controllers/businessLogic";
 // Middleware
 app.use(express.json());
 app.use(
@@ -29,6 +33,8 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   res.send("<h1>WorkHive Api is working </h1>");
 });
+app.post("/api/validateGeolocation", validateGeolocationHandler);
+app.use("/api/businessLogic", businessRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);

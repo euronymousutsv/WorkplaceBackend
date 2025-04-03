@@ -83,7 +83,7 @@ const checkEnumExists = async (enumName: string, schema: string = "public") => {
      WHERE t.typname = :enumName AND n.nspname = :schemaName;`,
     {
       replacements: { enumName, schemaName: schema },
-      type: QueryTypes.SELECT, // ✅ correct fix
+      type: QueryTypes.SELECT, //
     }
   );
 
