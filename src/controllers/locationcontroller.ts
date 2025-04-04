@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
-import { OfficeLocation } from "src/models/officeLocation";
+import { OfficeLocation } from "../models/officeLocation";
 
 // GET /locations/:id
 export const getLocation = async (req: Request, res: Response) => {
   try {
     const location = await OfficeLocation.findByPk(req.params.id);
-    if (!location) res.status(404).json({ error: "Location not found" });
-    return;
+    if (!location) {
+      res.status(404).json({ error: "Location not found" });
+      return;
+    }
     res.status(200).json(location);
   } catch (error) {
     console.error("getLocation error:", error);

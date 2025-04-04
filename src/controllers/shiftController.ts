@@ -527,8 +527,17 @@ export const createPenaltyRate = async (
   next: NextFunction
 ) => {
   try {
+    const { name, multiplier, description } = req.body;
+    if (!name || multiplier == null) {
+      res
+        .status(400)
+        .json({ message: "Both 'name' and 'multiplier' are required." });
+      return;
+    }
     const rate = await PenaltyRate.create({
-      ...req.body,
+      name,
+      multiplier,
+      description,
       createdAt: new Date(),
     });
     res.status(201).json(rate);
@@ -666,8 +675,9 @@ export const getPendingShiftRequests = async (
       where: { status: "pending" },
     });
     res.json(records);
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    console.error("getPendingShiftRequests error:", error.message || error);
+    res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
 

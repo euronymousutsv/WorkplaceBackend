@@ -19,7 +19,7 @@ import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestMod
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
-import SystemSetting from "src/models/systemSettingModel";
+import SystemSetting from "../models/systemSettingModel";
 const syncDatabase = async () => {
   try {
     console.log("🔄 Connecting to the database...");
