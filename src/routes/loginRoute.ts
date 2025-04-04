@@ -4,6 +4,7 @@ import {
   editCurrentUserDetail,
   getCurrentUserDetails,
   loginUser,
+  logOutUSer,
   registerUser,
   validateVerificationCode,
   verificationCode,
@@ -22,6 +23,8 @@ router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/sendVerificationCode").post(verificationCode);
 router.route("/validateVerificationCode").post(validateVerificationCode);
+router.route("/logOutUser").get(logOutUSer);
+
 router
   .route("/editCurrentUserDetail")
   .post(verifyLoginStatus, editCurrentUserDetail);
