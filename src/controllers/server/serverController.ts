@@ -51,15 +51,14 @@ const registerServer = async (
 
     const inviteCode = randomUUID().slice(0, 8);
 
-    const newServer = Server.create({
+    const newServer = await Server.create({
       name: serverName,
       idVerificationRequired,
       ownerId,
       inviteLink: inviteCode,
     });
 
-    const savedServer = (await newServer).save();
-    if (!savedServer)
+    if (!newServer)
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to create Server");
 
     res
@@ -67,9 +66,58 @@ const registerServer = async (
       .json(
         new ApiResponse(
           StatusCode.CREATED,
-          (await savedServer).dataValues,
+          newServer.dataValues,
           "Server Regestration successfull!"
         )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+const searchServer = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      inviteCode: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { inviteCode } = req.query;
+
+  try {
+    if (!inviteCode)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { inviteId: "" },
+        "Invide Code cannot be empty"
+      );
+
+    const searchedServer = await Server.findOne({
+      where: { inviteLink: inviteCode },
+    });
+    if (!searchedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server not found.");
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(StatusCode.CREATED, searchedServer, "Joined Success!")
       );
   } catch (error) {
     if (error instanceof ApiError) {
@@ -526,4 +574,4 @@ export const updateRole = async (
   }
 };
 
-export { registerServer, getLoggedInUserServer, joinServer };
+export { registerServer, getLoggedInUserServer, joinServer, searchServer };

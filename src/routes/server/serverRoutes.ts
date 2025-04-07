@@ -6,6 +6,7 @@ import {
   joinServer,
   kickEmployee,
   registerServer,
+  searchServer,
   updateRole,
 } from "../../controllers/server/serverController";
 import {
@@ -22,6 +23,7 @@ const router = express.Router();
 
 // Server Routes
 router.post("/register", verifyLoginStatus, registerServer);
+router.post("/search", searchServer);
 router.get("/getLoggedInUserServer/", verifyLoginStatus, getLoggedInUserServer);
 router.post("/joinServer", verifyLoginStatus, joinServer);
 

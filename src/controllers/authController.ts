@@ -499,7 +499,7 @@ export const verificationCode = async (
 
       // Send SMS using Twilio
       const message = await client.messages.create({
-        body: `Your verification code is: ${generateVerificationCode()}`,
+        body: `Your verification code is: ${verificationCode}`,
         from: twilioPhoneNumber,
         to: phoneNumber,
       });
