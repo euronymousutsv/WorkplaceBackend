@@ -9,6 +9,7 @@ import JoinedServer from "../../models/joinedServerModel";
 import { checkPassword, getAccessToken } from "../../utils/helper";
 import { Employee } from "../../models/employeeModel";
 import { Roles } from "../../models/channelModel";
+import { Sequelize } from "sequelize";
 
 const registerServer = async (
   req: Request<
@@ -574,4 +575,73 @@ export const updateRole = async (
   }
 };
 
-export { registerServer, getLoggedInUserServer, joinServer, searchServer };
+// get all users in a server and their roles
+// --> access token needs to be passed via bearer token
+const getAllUsersInServer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const accessToken = getAccessToken(req);
+  console.log(accessToken);
+  try {
+    if (!accessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Access Token cannot be empty."
+      );
+
+    const decoded = verifyAccessToken(accessToken);
+    const userId = decoded?.userId;
+
+    const joinedServer = await JoinedServer.findOne({
+      where: { id: userId },
+    });
+    if (!joinedServer)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server Not found");
+
+    // search for all users within that server
+    const allUsers = await JoinedServer.findAll({
+      where: {
+        serverId: joinedServer.serverId,
+      },
+      include: [
+        {
+          model: Employee,
+          attributes: {
+            exclude: ["password"],
+          },
+        },
+      ],
+    });
+
+    if (!allUsers)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Users not found");
+
+    res
+      .status(201)
+      .json(new ApiResponse(StatusCode.CREATED, allUsers, "Server found"));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+export {
+  registerServer,
+  getLoggedInUserServer,
+  joinServer,
+  searchServer,
+  getAllUsersInServer,
+};

@@ -8,6 +8,7 @@ import { RefreshToken } from "./refreshModel";
 import { Roster } from "./rosterModel";
 import Document from "./documentModel";
 import Server from "./serverModel";
+import JoinedServer from "./joinedServerModel";
 
 // Define associations AFTER models are imported
 Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
@@ -22,6 +23,11 @@ Roster.belongsTo(OfficeLocation, {
   foreignKey: "officeId",
   as: "officeLocation",
 });
+
+Employee.hasOne(JoinedServer, { foreignKey: "id" });
+JoinedServer.belongsTo(Employee, { foreignKey: "id" });
+Server.hasMany(JoinedServer, { foreignKey: "serverId" });
+JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
 
 Channel.belongsTo(Server, { foreignKey: "serverId" });
 Chat.belongsTo(Channel, { foreignKey: "channelId", as: "channels" });

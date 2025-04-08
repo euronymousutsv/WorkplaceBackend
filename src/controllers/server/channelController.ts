@@ -116,14 +116,15 @@ const deleteChannel = async (
   req: Request<
     {},
     {},
+    {},
     {
       channelId: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { channelId } = req.body;
-
+  const { channelId } = req.query;
+  console.log(channelId);
   try {
     if (!channelId)
       throw new ApiError(

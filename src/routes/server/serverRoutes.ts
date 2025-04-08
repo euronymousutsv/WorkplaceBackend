@@ -2,6 +2,7 @@ import express from "express";
 import {
   changeServerOwnership,
   deleteServer,
+  getAllUsersInServer,
   getLoggedInUserServer,
   joinServer,
   kickEmployee,
@@ -38,6 +39,7 @@ router.delete(
 
 // kick Employee from a server
 router.delete("/kickEmployee", verifyLoginStatus, kickEmployee);
+router.get("/fetchAllUsers", verifyLoginStatus, getAllUsersInServer);
 router.put(
   "/updateRole",
   verifyLoginStatus,
