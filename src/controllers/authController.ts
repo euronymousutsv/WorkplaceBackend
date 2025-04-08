@@ -175,6 +175,14 @@ export const loginUser = async (
       throw new ApiError(StatusCode.UNAUTHORIZED, {}, "User Not Found");
     }
 
+    if (!searchedUser.password) {
+      throw new ApiError(
+        StatusCode.CONFLICT,
+        {},
+        "User registration not complete."
+      );
+    }
+
     // compare hashed password and the user input password for that user
     const isPasswordValid = await checkPassword(
       password,
@@ -242,6 +250,63 @@ export const loginUser = async (
             error.message || "Something is not right"
           )
         );
+    else {
+      // Handle unexpected errors
+      console.error(error); // Log the error for debugging
+      res.status(500).json(new ApiError(500, error, "Internal Server Error"));
+    }
+    return;
+  }
+};
+
+export const partialRegestrationPasswordSet = async (
+  req: Request<{}, {}, { password: string; phoneNumber: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { password, phoneNumber } = req.body;
+    console.log(password, phoneNumber);
+
+    if (!password || !phoneNumber)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Missing password or PhoneNumber."
+      );
+
+    // checks password length and if it is strong
+    if (!validatePasswordSecurity(password)) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Password is not secured enough. See if it has at least 8 characters and at lease one capital letter, small letter, symbol and a number"
+      );
+    }
+    const searchedUser = await Employee.findOne({
+      where: { phoneNumber: phoneNumber },
+    });
+
+    if (!searchedUser)
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "User not found");
+
+    if (searchedUser.password != null)
+      throw new ApiError(
+        StatusCode.CONFLICT,
+        {},
+        "The user has already been registerd."
+      );
+    // This variable will store the hashed password which will then be sent to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+    searchedUser.password = hashedPassword;
+    searchedUser.employmentStatus = EmployeeStatus.ACTIVE;
+    const saved = await searchedUser.save();
+
+    if (!saved) throw new ApiError(StatusCode.NOT_FOUND, {}, "Unable to save");
+    res
+      .status(StatusCode.OK)
+      .json(new ApiResponse(StatusCode.OK, {}, "User regestration complete"));
+  } catch (error) {
+    if (error instanceof ApiError) res.status(error.statusCode).json(error);
     else {
       // Handle unexpected errors
       console.error(error); // Log the error for debugging

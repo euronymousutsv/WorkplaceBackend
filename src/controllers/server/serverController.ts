@@ -1,15 +1,21 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Server from "../../models/serverModel";
+import twilio from "twilio";
 
 import { randomUUID } from "crypto";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
-import { checkPassword, getAccessToken } from "../../utils/helper";
+import {
+  checkPassword,
+  getAccessToken,
+  validateEmail,
+  validatePhoneNumber,
+} from "../../utils/helper";
 import { Employee, EmployeeStatus } from "../../models/employeeModel";
 import { Roles } from "../../models/channelModel";
-import { Sequelize, where } from "sequelize";
+import sequelize from "../../config/db";
 
 const registerServer = async (
   req: Request<
@@ -649,6 +655,7 @@ interface EmployeeDetailsPayload {
   firstName: string;
   lastName: string;
   phone: string;
+  email: string;
   role: Roles;
   employmentStatus: EmployeeStatus;
 }
@@ -658,9 +665,18 @@ export const updateEmployeeDetails = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id, firstName, lastName, phone, role, employmentStatus } = req.body;
+    const { id, firstName, lastName, phone, role, employmentStatus, email } =
+      req.body;
 
-    if (!id || !firstName || !lastName || !phone || role || !employmentStatus)
+    if (
+      !id ||
+      !firstName ||
+      !lastName ||
+      !phone ||
+      role ||
+      !employmentStatus ||
+      !email
+    )
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         {
@@ -670,8 +686,9 @@ export const updateEmployeeDetails = async (
           phone: "",
           role: Roles,
           employeeStatus: EmployeeStatus,
+          email: "",
         },
-        "userId cannot be empty"
+        "These field cannot be empty"
       );
 
     if (!Object.values(Roles).includes(role)) {
@@ -710,6 +727,10 @@ export const updateEmployeeDetails = async (
 
     if (searchedUser.phoneNumber !== phone) {
       searchedUser.phoneNumber = phone;
+      updated = true;
+    }
+    if (searchedUser.email !== email) {
+      searchedUser.email = email;
       updated = true;
     }
 
@@ -753,6 +774,153 @@ export const updateEmployeeDetails = async (
           )
         );
     }
+  }
+};
+
+export const partialRegestrationEmployee = async (
+  req: Request<{}, {}, EmployeeDetailsPayload, { serverId: string }>,
+  res: Response
+): Promise<void> => {
+  const { firstName, lastName, phone, role, email } = req.body;
+  const { serverId } = req.query;
+  if (!serverId)
+    throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server Id cannot be empty");
+
+  const t = await sequelize.transaction();
+  try {
+    // if any of these field is empty it will send a response of 404 error.
+    if (!firstName || !lastName || !phone || !role || !email)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {
+          id: "",
+          firstName: "",
+          lastName: "",
+          phone: "",
+          role: Roles,
+          email: "",
+        },
+        "These field cannot be empty"
+      );
+
+    console.log(req.body);
+    // this function check if the email is valid
+    if (!validateEmail(email)) {
+      throw new ApiError(400, {}, "Email is not valid");
+    }
+
+    // check if the phoneNumber is valid
+    // Must start with +61, should be 12 characters long including countrycode.
+    // currently supports only australia
+    const isPhoneValid = validatePhoneNumber(phone);
+    if (!isPhoneValid)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Invalid Phone Number");
+
+    // check if the user with this email already exists
+    const checkUserEmail = await Employee.findOne({
+      where: { email: email },
+      transaction: t,
+    });
+    if (checkUserEmail != null) {
+      throw new ApiError(StatusCode.CONFLICT, {}, "User already Registered");
+    }
+
+    // check if the user with this phone Number already exists
+    const checkUserPhone = await Employee.findOne({
+      where: { phoneNumber: phone },
+      transaction: t,
+    });
+    if (checkUserPhone != null) {
+      console.log(checkUserPhone);
+      throw new ApiError(StatusCode.CONFLICT, {}, "Phone Number already used");
+    }
+
+    const searchServer = await Server.findOne({
+      where: { id: serverId },
+      transaction: t,
+    });
+    if (!searchServer)
+      throw new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        "Server not found."
+      );
+
+    // create a user / employee
+    const newUser = await Employee.create(
+      {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phoneNumber: phone.toString(),
+        role: "employee",
+      },
+      {
+        transaction: t,
+      }
+    );
+
+    const joinServer = await JoinedServer.create(
+      {
+        serverId: serverId,
+        id: newUser.id,
+      },
+      {
+        transaction: t,
+      }
+    );
+
+    try {
+      await sendTextPhone(
+        phone,
+        "Your employeer has added you to a server. Please complete regestration. You will require this phone number to complete regestration. Download out Mobile app today."
+      );
+    } catch (err) {
+      throw new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        "Unable to send the SmS"
+      );
+    }
+
+    if (!newUser || !joinServer)
+      throw new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        "Failed to register User or join the server"
+      );
+
+    await t.commit();
+    res.status(StatusCode.OK).json(
+      new ApiResponse(
+        StatusCode.OK,
+        {
+          firstName,
+          lastName,
+          email,
+          phone,
+        },
+        "User registered"
+      )
+    );
+    // search for current server
+  } catch (error) {
+    if (error instanceof ApiError)
+      res
+        .status(error.statusCode)
+        .json(
+          new ApiError(
+            error.statusCode,
+            error.error,
+            error.message || "Something is not right"
+          )
+        );
+    else {
+      // Handle unexpected errors
+      console.error(error); // Log the error for debugging
+      res.status(500).json(new ApiError(500, error, "Internal Server Error"));
+    }
+    return;
   }
 };
 
@@ -817,6 +985,34 @@ const getAllUsersInServer = async (
         );
     }
   }
+};
+
+// Send verification Code
+export const sendTextPhone = async (
+  toPhone: string,
+  text: string
+): Promise<void> => {
+  // twilio details
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
+  const authToken = process.env.TWILIO_AUTH_TOKEN || "";
+  const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || "";
+
+  const client = twilio(accountSid, authToken);
+
+  // Send SMS using Twilio
+  const message = await client.messages.create({
+    body: text,
+    from: twilioPhoneNumber,
+    to: toPhone,
+  });
+
+  if (!message) {
+    throw new ApiError(500, {}, "Error sending Verification Code");
+  }
+
+  console.log("Sent Successfully", message.sid);
+
+  console.log("OTP sent successfully:");
 };
 
 export {

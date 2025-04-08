@@ -7,6 +7,7 @@ import {
   joinServer,
   kickEmployee,
   leaveServer,
+  partialRegestrationEmployee,
   registerServer,
   searchServer,
   updateEmployeeDetails,
@@ -55,6 +56,7 @@ router.put(
   checkPermission(Role.ADMIN),
   updateEmployeeDetails
 );
+router.post("/partialRegestrationEmployee", partialRegestrationEmployee);
 
 // Send server wide notifications / annoucement
 // Payroll Routes

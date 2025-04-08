@@ -5,6 +5,7 @@ import {
   getCurrentUserDetails,
   loginUser,
   logOutUSer,
+  partialRegestrationPasswordSet,
   registerUser,
   validateVerificationCode,
   verificationCode,
@@ -21,6 +22,9 @@ router.get("/", (req: Request, res: Response) => {
 
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
+router
+  .route("/partialRegestrationPasswordSet")
+  .post(partialRegestrationPasswordSet);
 router.route("/sendVerificationCode").post(verificationCode);
 router.route("/validateVerificationCode").post(validateVerificationCode);
 router.route("/logOutUser").get(logOutUSer);
