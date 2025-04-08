@@ -60,6 +60,7 @@ AttendanceEvent.init(
     sequelize,
     modelName: "AttendanceEvent",
     tableName: "attendance_events",
+    paranoid: true,
     timestamps: true, // Adds createdAt and updatedAt fields
   }
 );

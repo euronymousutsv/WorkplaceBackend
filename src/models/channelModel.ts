@@ -54,6 +54,7 @@ Channel.init(
   },
   {
     sequelize,
+    paranoid: true,
     tableName: "channels",
     timestamps: true,
   }

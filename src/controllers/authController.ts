@@ -9,7 +9,7 @@ import {
   validatePhoneNumber,
 } from "../utils/helper";
 import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import { Employee } from "../models/employeeModel";
+import { Employee, EmployeeStatus } from "../models/employeeModel";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -99,7 +99,7 @@ export const registerUser = async (
       email: email,
       password: hashedPassword,
       phoneNumber: phoneNumber.toString(),
-      employmentStatus: "Active",
+      employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
     });
 

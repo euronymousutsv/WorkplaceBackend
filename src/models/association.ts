@@ -24,7 +24,7 @@ Roster.belongsTo(OfficeLocation, {
   as: "officeLocation",
 });
 
-Employee.hasOne(JoinedServer, { foreignKey: "id" });
+Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
 JoinedServer.belongsTo(Employee, { foreignKey: "id" });
 Server.hasMany(JoinedServer, { foreignKey: "serverId" });
 JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
@@ -39,12 +39,15 @@ Chat.belongsTo(Employee, { foreignKey: "userId" });
 OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
 
 RefreshToken.belongsTo(Employee, { foreignKey: "employeeId" });
-Employee.hasOne(RefreshToken, { foreignKey: "employeeId" });
+Employee.hasOne(RefreshToken, {
+  foreignKey: "employeeId",
+  onDelete: "CASCADE",
+});
 
 // employeeModel.ts
-Employee.hasMany(Document, { foreignKey: "employeeId" });
+Employee.hasMany(Document, { foreignKey: "employeeId", onDelete: "CASCADE" });
 
 // documentModel.ts
-Document.belongsTo(Employee, { foreignKey: "employeeId" });
+Document.belongsTo(Employee, { foreignKey: "employeeId", onDelete: "CASCADE" });
 
 export default {};

@@ -7,9 +7,9 @@ import { randomUUID } from "crypto";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import JoinedServer from "../../models/joinedServerModel";
 import { checkPassword, getAccessToken } from "../../utils/helper";
-import { Employee } from "../../models/employeeModel";
+import { Employee, EmployeeStatus } from "../../models/employeeModel";
 import { Roles } from "../../models/channelModel";
-import { Sequelize } from "sequelize";
+import { Sequelize, where } from "sequelize";
 
 const registerServer = async (
   req: Request<
@@ -487,6 +487,72 @@ export const kickEmployee = async (
   }
 };
 
+// leave a server
+export const leaveServer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken(req);
+    if (!accessToken)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "" },
+        "userId cannot be empty"
+      );
+    const userId = verifyAccessToken(accessToken)?.userId;
+
+    const searchedUser = await Employee.findOne({
+      where: { id: userId },
+    });
+
+    // search the user in the database.
+    if (!searchedUser)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "User not found in any server"
+      );
+
+    // search server to see if the user is owner
+    const searchedServer = await Server.findOne({
+      where: { $ownerId$: userId },
+    });
+
+    if (searchedServer)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "An owner cannot leave a server."
+      );
+
+    await searchedUser.destroy();
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          {},
+          ` ${searchedUser} Kicked Successfully`
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
 // Update users role
 export const updateRole = async (
   req: Request<
@@ -558,6 +624,121 @@ export const updateRole = async (
           `${searchedUser.firstName}, is now a ${role}`
         )
       );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// edit employee details
+// Employee wont be able to use these
+
+interface EmployeeDetailsPayload {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: Roles;
+  employmentStatus: EmployeeStatus;
+}
+
+export const updateEmployeeDetails = async (
+  req: Request<{}, {}, EmployeeDetailsPayload>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id, firstName, lastName, phone, role, employmentStatus } = req.body;
+
+    if (!id || !firstName || !lastName || !phone || role || !employmentStatus)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {
+          id: "",
+          firstName: "",
+          lastName: "",
+          phone: "",
+          role: Roles,
+          employeeStatus: EmployeeStatus,
+        },
+        "userId cannot be empty"
+      );
+
+    if (!Object.values(Roles).includes(role)) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { userId: "", possibleRoles: Roles },
+        "The role is not valid"
+      );
+    }
+
+    if (!Object.values(EmployeeStatus).includes(employmentStatus)) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { employeeStatus: "", possibleStatus: EmployeeStatus },
+        "The status is not valid"
+      );
+    }
+
+    // search the user
+    const searchedUser = await Employee.findOne({ where: { id: id } });
+
+    if (!searchedUser)
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "User not Found");
+
+    // Update fields if there are any changes
+    let updated = false;
+    if (searchedUser.firstName !== firstName) {
+      searchedUser.firstName = firstName;
+      updated = true;
+    }
+
+    if (searchedUser.lastName !== lastName) {
+      searchedUser.lastName = lastName;
+      updated = true;
+    }
+
+    if (searchedUser.phoneNumber !== phone) {
+      searchedUser.phoneNumber = phone;
+      updated = true;
+    }
+
+    if (searchedUser.role !== role) {
+      searchedUser.role = role;
+      updated = true;
+    }
+
+    if (searchedUser.employmentStatus !== employmentStatus) {
+      searchedUser.employmentStatus = employmentStatus;
+      updated = true;
+    }
+    if (updated) {
+      const savedUser = await searchedUser.save();
+
+      res
+        .status(200)
+        .json(
+          new ApiResponse(
+            StatusCode.OK,
+            {},
+            `${savedUser.firstName} is details has been updated.`
+          )
+        );
+    } else {
+      res
+        .status(200)
+        .json(new ApiResponse(StatusCode.OK, {}, "No changes were made"));
+    }
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);

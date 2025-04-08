@@ -48,6 +48,7 @@ Chat.init(
   },
   {
     sequelize,
+    paranoid: true,
     tableName: "chats",
     timestamps: true,
   }

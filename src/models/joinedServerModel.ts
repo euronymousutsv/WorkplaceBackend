@@ -44,6 +44,7 @@ JoinedServer.init(
     },
   },
   {
+    paranoid: true,
     sequelize,
     tableName: "joinedServer",
     timestamps: true, // Enables createdAt and updatedAt automatically

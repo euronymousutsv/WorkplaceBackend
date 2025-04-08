@@ -6,8 +6,10 @@ import {
   getLoggedInUserServer,
   joinServer,
   kickEmployee,
+  leaveServer,
   registerServer,
   searchServer,
+  updateEmployeeDetails,
   updateRole,
 } from "../../controllers/server/serverController";
 import {
@@ -39,12 +41,19 @@ router.delete(
 
 // kick Employee from a server
 router.delete("/kickEmployee", verifyLoginStatus, kickEmployee);
+router.delete("/leaveServer", verifyLoginStatus, leaveServer);
 router.get("/fetchAllUsers", verifyLoginStatus, getAllUsersInServer);
 router.put(
   "/updateRole",
   verifyLoginStatus,
   checkPermission(Role.ADMIN),
   updateRole
+);
+router.put(
+  "/updateEmployeeDetails",
+  verifyLoginStatus,
+  checkPermission(Role.ADMIN),
+  updateEmployeeDetails
 );
 
 // Send server wide notifications / annoucement

@@ -68,6 +68,7 @@ OfficeLocation.init(
     modelName: "OfficeLocation",
     tableName: "office_locations",
     timestamps: false,
+    paranoid: true,
   }
 );
 // OfficeLocation.hasMany(Roster,{foreignKey:"officeId"})s

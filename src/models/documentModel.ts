@@ -66,7 +66,9 @@ Document.init(
   {
     sequelize,
     modelName: "document",
+
     tableName: "document",
+    paranoid: true,
   }
 );
 export default Document;

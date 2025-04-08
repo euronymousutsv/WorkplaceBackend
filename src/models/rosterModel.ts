@@ -71,6 +71,7 @@ Roster.init(
   {
     sequelize,
     modelName: "roster",
+    paranoid: true,
     tableName: "roster",
   }
 );
