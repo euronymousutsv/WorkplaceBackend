@@ -675,7 +675,7 @@ export const getPendingShiftRequests = async (
 ) => {
   try {
     const records = await ShiftRequest.findAll({
-      where: { status: "pending" as ShiftRequest["status"] },
+      where: { status: "pending" },
     });
     res.json(records);
   } catch (error: any) {

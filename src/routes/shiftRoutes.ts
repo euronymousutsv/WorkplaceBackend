@@ -73,7 +73,7 @@ router.get(
   "/shift-requests/employee/:employeeId",
   shiftController.getShiftRequestsByEmployeeId
 );
-router.get("/shift-requests/pending", shiftController.getPendingShiftRequests);
+router.get("/shift-requests-pending", shiftController.getPendingShiftRequests);
 router.post("/shift-requests", shiftController.createShiftRequest);
 router.patch("/shift-requests/:id", shiftController.updateShiftRequest);
 
