@@ -19,7 +19,13 @@ export interface BreakPeriodAttributes {
 export interface BreakPeriodCreationAttributes
   extends Optional<
     BreakPeriodAttributes,
-    "id" | "endTime" | "notes" | "latitude" | "longitude" | "createdAt"
+    | "id"
+    | "endTime"
+    | "notes"
+    | "latitude"
+    | "longitude"
+    | "createdAt"
+    | "isValid"
   > {}
 
 export class BreakPeriod
@@ -84,7 +90,7 @@ BreakPeriod.init(
     },
     isValid: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: true,
     },
     createdAt: {

@@ -7,10 +7,19 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Run nodemon",
+      "name": "Debug with nodemon and ts-node",
       "runtimeExecutable": "nodemon",
+      "runtimeArgs": [
+        "--exec",
+        "node --inspect -r ts-node/register ./src/app.ts"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      },
       "cwd": "${workspaceFolder}",
-      "args": []
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
@@ -19,6 +28,23 @@
       "skipFiles": ["<node_internals>/**"],
       "program": "${file}",
       "outFiles": ["${workspaceFolder}/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Express + TypeScript",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/index.ts", // your entry file
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Server",
+      "runtimeExecutable": "nodemon",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

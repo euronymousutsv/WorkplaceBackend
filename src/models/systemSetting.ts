@@ -1,7 +1,8 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+
 export interface SystemSettingAttributes {
-  id: number;
+  id: string;
   key: string;
   value: string;
   description?: string;
@@ -18,7 +19,7 @@ export class SystemSetting
   extends Model<SystemSettingAttributes, SystemSettingCreationAttributes>
   implements SystemSettingAttributes
 {
-  public id!: number;
+  public id!: string;
   public key!: string;
   public value!: string;
   public description?: string;
@@ -28,8 +29,8 @@ export class SystemSetting
 SystemSetting.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     key: {
@@ -48,6 +49,7 @@ SystemSetting.init(
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+      allowNull: true,
     },
   },
   {

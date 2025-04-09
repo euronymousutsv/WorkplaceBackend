@@ -394,6 +394,7 @@ export const createBreakPeriod = async (
   next: NextFunction
 ) => {
   try {
+    console.log("Incoming Body", req.body);
     const record = await BreakPeriod.create({
       ...req.body,
       createdAt: new Date(),
@@ -552,8 +553,10 @@ export const updatePenaltyRate = async (
   next: NextFunction
 ) => {
   try {
+    const penaltyId = req.params.id;
+    console.log("penaltyID", penaltyId);
     const [count, rows] = await PenaltyRate.update(req.body, {
-      where: { id: req.params.id },
+      where: { id: penaltyId },
       returning: true,
     });
     if (count === 0) {
@@ -672,7 +675,7 @@ export const getPendingShiftRequests = async (
 ) => {
   try {
     const records = await ShiftRequest.findAll({
-      where: { status: "pending" },
+      where: { status: "pending" as ShiftRequest["status"] },
     });
     res.json(records);
   } catch (error: any) {

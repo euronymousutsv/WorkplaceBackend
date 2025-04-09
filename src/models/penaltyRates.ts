@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 
 // Interface for the PenaltyRate attributes
 export interface PenaltyRateAttributes {
-  id: number;
+  id: string;
   name: string;
   multiplier: number;
   description?: string;
@@ -20,7 +20,7 @@ export class PenaltyRate
   extends Model<PenaltyRateAttributes, PenaltyRateCreationAttributes>
   implements PenaltyRateAttributes
 {
-  public id!: number;
+  public id!: string;
   public name!: string;
   public multiplier!: number;
   public description?: string;
@@ -31,8 +31,8 @@ export class PenaltyRate
 PenaltyRate.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     name: {

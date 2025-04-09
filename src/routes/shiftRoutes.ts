@@ -27,7 +27,7 @@ router.get(
   shiftController.getEmployeeWithAvailability
 );
 router.post("/availability", shiftController.createEmployeeAvailability);
-router.put("/availability/:id", shiftController.updateEmployeeAvailability);
+router.patch("/availability/:id", shiftController.updateEmployeeAvailability);
 router.delete("/availability/:id", shiftController.deleteEmployeeAvailability);
 
 // --- Break Periods ---

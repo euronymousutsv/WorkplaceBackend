@@ -6,6 +6,7 @@ import {
   createSystemSetting,
   updateSystemSetting,
   getSystemConfig,
+  getSystemConfigHandler,
 } from "../controllers/settingController";
 
 const router = express.Router();
@@ -17,7 +18,7 @@ router.get("/", getAllSystemSettings);
 router.get("/:key", getSystemSetting);
 
 // GET parsed config object
-router.get("/config/system", getSystemConfig);
+router.get("/config/system", getSystemConfigHandler);
 
 // POST create new setting
 router.post("/", createSystemSetting);
