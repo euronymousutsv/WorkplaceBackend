@@ -668,6 +668,7 @@ export const updateEmployeeDetails = async (
     const { id, firstName, lastName, phone, role, employmentStatus, email } =
       req.body;
 
+    console.log(id, firstName, lastName, phone, role, employmentStatus, email);
     if (
       !id ||
       !firstName ||
