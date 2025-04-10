@@ -673,7 +673,7 @@ export const updateEmployeeDetails = async (
       !firstName ||
       !lastName ||
       !phone ||
-      role ||
+      !role ||
       !employmentStatus ||
       !email
     )
