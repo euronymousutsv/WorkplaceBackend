@@ -4,6 +4,7 @@ import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Chat from "../../models/chatModel";
 import { Employee } from "../../models/employeeModel";
 import { io } from "../../config/socket";
+import { createNotification } from "../notificationController";
 
 // send a message to a channel
 const sendMessage = async (
@@ -43,6 +44,17 @@ const sendMessage = async (
 
     const savedMessage = await Chat.create({ userId, message, channelId });
     // emit message to all clients in this channel
+
+    // trial check
+    // working
+    // todo :
+    // await createNotification(
+    //   "ExponentPushToken[stgllcG3B8A8hTp7ScLR0x]",
+    //   userId,
+    //   "Pranish send a message",
+    //   message
+    // );
+
     io.to(channelId).emit("newMessage", savedMessage);
 
     res

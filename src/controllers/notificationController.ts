@@ -7,6 +7,7 @@ import { getAccessToken } from "../utils/helper";
 import { verifyAccessToken } from "../utils/jwtGenerater";
 import { Expo } from "expo-server-sdk";
 import JoinedServer from "../models/joinedServerModel";
+import Notification from "../models/Notifications";
 
 // helper functions
 const sendPushNotification = async (
@@ -57,8 +58,104 @@ const sendPushNotification = async (
   }
 };
 
-// api's
+// notification in database
+// sendPushNotification is called inside this function already. So no need to call that function again.
+export const createNotification = async (
+  expoPushToken: string,
+  userId: string,
+  title: string,
+  body: string
+) => {
+  // Validate input
+  if (!userId || !title || !body) {
+    throw new ApiError(
+      StatusCode.BAD_REQUEST,
+      {},
+      "Missing userId, title, or body."
+    );
+  }
 
+  // Create notification in the database
+  const newNotification = await Notification.create({
+    title,
+    body,
+    employeeId: userId,
+  });
+
+  if (!newNotification) {
+    throw new ApiError(
+      StatusCode.INTERNAL_SERVER_ERROR,
+      {},
+      "Unable to save notification in the database."
+    );
+  }
+
+  await sendPushNotification(expoPushToken, title, body);
+  return newNotification;
+};
+
+// fetch all api for an employee
+const fetchAllNotifications = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken(req);
+    if (!accessToken)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Access token not found.");
+
+    const userId = verifyAccessToken(accessToken)?.userId;
+
+    // Validate userId
+    if (!userId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Missing userId.");
+    }
+
+    // Fetch all notifications for the user from the database
+    const notifications = await Notification.findAll({
+      where: {
+        employeeId: userId,
+      },
+      order: [["createdAt", "DESC"]], // order by init_time (latest first)
+    });
+
+    // If no notifications found, throw an error
+    if (!notifications || notifications.length === 0) {
+      res
+        .status(200)
+        .json(
+          new ApiResponse(StatusCode.OK, notifications, "No notifications")
+        );
+    }
+    // Respond with the notifications
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          StatusCode.OK,
+          notifications,
+          "Notifications fetched successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// api's
+// expo push notification
 // register a device for push notifications
 const registerDevice = async (
   req: Request<
@@ -410,4 +507,5 @@ export {
   sendNotificationToEmployee,
   sendNotificationToSelectedUsers,
   sendNotificationToServer,
+  fetchAllNotifications,
 };

@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
-
-import { refreshToken } from "../utils/jwtGenerater";
 import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 import {
+  fetchAllNotifications,
   registerDevice,
   sendNotificationToEmployee,
   sendNotificationToSelectedUsers,
@@ -20,5 +19,8 @@ router
 router
   .route("/sendNotificationToServer")
   .post(verifyLoginStatus, sendNotificationToServer);
+router
+  .route("/fetchAllNotifications")
+  .get(verifyLoginStatus, fetchAllNotifications);
 
 export default router;
