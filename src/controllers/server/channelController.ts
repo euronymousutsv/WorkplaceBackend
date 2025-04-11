@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Channel, { Roles } from "../../models/channelModel";
+import { getAccessToken } from "../../utils/helper";
+import { verifyAccessToken } from "../../utils/jwtGenerater";
 
 // Function to create a new channel inside a server
 const createNewChannel = async (
@@ -84,15 +86,43 @@ const getAllChannelForCurrentServer = async (
         "Make sure both Server is provided."
       );
 
-    const allChannel = await Channel.findAll({ where: { serverId: serverId } });
-    if (allChannel.length <= 0) {
+    const accessToken = getAccessToken(req);
+    const role = verifyAccessToken(accessToken)?.role;
+
+    const allChannel = await Channel.findAll({
+      where: { serverId: serverId },
+    });
+
+    const accessibleChannels = allChannel.filter((channel) => {
+      const required = channel.highestRoleToAccessChannel;
+
+      if (required === null || required == Roles.EMPLOYEE) {
+        return true; // open to all
+      }
+
+      if (role === "manager") {
+        return required === "manager" || required === "admin";
+      }
+
+      if (role === "admin") {
+        return required === "admin";
+      }
+
+      return false; // any other roles don't get access
+    });
+
+    if (accessibleChannels.length <= 0) {
       throw new ApiError(StatusCode.NOT_FOUND, {}, "No Channels found");
     }
 
     res
       .status(201)
       .json(
-        new ApiResponse(StatusCode.CREATED, allChannel, "All channels fetched")
+        new ApiResponse(
+          StatusCode.CREATED,
+          accessibleChannels,
+          "All channels fetched"
+        )
       );
   } catch (error) {
     if (error instanceof ApiError) {
