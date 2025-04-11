@@ -16,7 +16,7 @@ interface EmployeeAttributes {
 
 export enum EmployeeStatus {
   ACTIVE = "Active",
-  INACTIVE = "Inactive",
+  INACTIVE = "InActive",
   LEAVE = "Leave",
   TERMINATED = "Terminated",
 }

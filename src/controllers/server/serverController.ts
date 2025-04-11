@@ -16,6 +16,8 @@ import {
 import { Employee, EmployeeStatus } from "../../models/employeeModel";
 import { Roles } from "../../models/channelModel";
 import sequelize from "../../config/db";
+import { join } from "path";
+import { Sequelize } from "sequelize";
 
 const registerServer = async (
   req: Request<
@@ -236,7 +238,15 @@ const getLoggedInUserServer = async (
     const decoded = verifyAccessToken(accessToken);
     const userId = decoded?.userId;
 
-    const joinedServer = await JoinedServer.findOne({ where: { id: userId } });
+    const joinedServer = await JoinedServer.findOne({
+      where: { id: userId },
+      include: { model: Server, attributes: [] },
+      attributes: {
+        include: [[Sequelize.col("Server.name"), "name"]],
+      },
+      raw: true,
+    });
+
     if (!joinedServer)
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server Not found");
     res
