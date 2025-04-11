@@ -96,16 +96,20 @@ const getAllChannelForCurrentServer = async (
     const accessibleChannels = allChannel.filter((channel) => {
       const required = channel.highestRoleToAccessChannel;
 
-      if (required === null || required == Roles.EMPLOYEE) {
-        return true; // open to all
+      if (role === "admin") {
+        return true; // admin has access to all
       }
 
       if (role === "manager") {
-        return required === "manager" || required === "admin";
+        return (
+          required === null ||
+          required === Roles.EMPLOYEE ||
+          required === Roles.MANAGER
+        );
       }
 
-      if (role === "admin") {
-        return required === "admin";
+      if (role === "employee") {
+        return required === null || required === Roles.EMPLOYEE;
       }
 
       return false; // any other roles don't get access
