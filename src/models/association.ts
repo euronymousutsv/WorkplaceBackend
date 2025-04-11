@@ -9,6 +9,7 @@ import { Roster } from "./rosterModel";
 import Document from "./documentModel";
 import Server from "./serverModel";
 import JoinedServer from "./joinedServerModel";
+import { ExpoDeviceToken } from "./deviceTokenModel";
 
 // Define associations AFTER models are imported
 Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
@@ -24,8 +25,14 @@ Roster.belongsTo(OfficeLocation, {
   as: "officeLocation",
 });
 
+// joined server
 Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
 JoinedServer.belongsTo(Employee, { foreignKey: "id" });
+
+// expo device token
+Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });
+ExpoDeviceToken.belongsTo(Employee, { foreignKey: "id" });
+
 Server.hasMany(JoinedServer, { foreignKey: "serverId" });
 JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
 
