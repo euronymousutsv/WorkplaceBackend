@@ -2,7 +2,6 @@ import * as shiftController from "../controllers/shiftController";
 import express from "express";
 
 const router = express.Router();
-
 router.get("/shifts", shiftController.getAllShifts);
 router.get("/shifts/:id", shiftController.getShift);
 router.get("/shifts/:id/details", shiftController.getShiftWithDetails);
@@ -11,6 +10,7 @@ router.get(
   "/shifts/employee/:employeeId",
   shiftController.getShiftsByEmployeeId
 );
+router.get("/server/:id", shiftController.getShiftByServer);
 router.get("/shifts/range", shiftController.getShiftsByDateRange);
 router.post("/shifts", shiftController.createShift);
 router.put("/shifts/:id", shiftController.updateShift);

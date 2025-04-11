@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
 import { Employee } from "../employeeModel";
 import { OfficeLocation } from "../officeLocation";
+import Server from "../serverModel";
 export interface ShiftAttributes {
   id: string;
   employeeId?: string;
@@ -14,6 +15,7 @@ export interface ShiftAttributes {
   parentShiftId?: number;
   repeatEndDate?: Date;
   createdAt?: Date;
+  serverId?: string;
 }
 
 export interface ShiftCreationAttributes
@@ -27,6 +29,7 @@ export interface ShiftCreationAttributes
     | "parentShiftId"
     | "repeatEndDate"
     | "createdAt"
+    | "serverId"
   > {}
 
 export class Shift
@@ -44,6 +47,7 @@ export class Shift
   public parentShiftId?: number;
   public repeatEndDate?: Date;
   public createdAt?: Date;
+  public serverId?: string;
 }
 
 Shift.init(
@@ -57,6 +61,12 @@ Shift.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
+    },
+    serverId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Server, key: "id" },
       onDelete: "CASCADE",
     },
     locationId: {

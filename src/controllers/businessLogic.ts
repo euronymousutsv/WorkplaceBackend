@@ -13,6 +13,7 @@ import { Employee } from "../models/employeeModel";
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { SystemSetting } from "../models/systemSetting";
+import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 
 const calculateDistance = (
   lat1: number,
@@ -224,6 +225,7 @@ export const getDashboardSummary = async (
 };
 
 // ✅ 4. Calculate Payrate
+
 export const calculatePayrate = async (
   req: Request,
   res: Response,
@@ -231,18 +233,24 @@ export const calculatePayrate = async (
 ) => {
   try {
     const { employeeId, startDate, endDate } = req.body;
+
     const employee = await Employee.findByPk(employeeId);
     if (!employee) {
       res.status(404).json({ message: "Employee not found" });
       return;
     }
-    const shifts = await Shift.findAll({
+
+    const clockRecords = await ClockInOut.findAll({
       where: {
         employeeId,
-        startTime: { [Op.gte]: new Date(startDate) },
-        endTime: { [Op.lte]: new Date(endDate) },
+        timestamp: {
+          [Op.between]: [new Date(startDate), new Date(endDate)],
+        },
+        isValid: true,
       },
+      order: [["timestamp", "ASC"]],
     });
+    console.log(clockRecords);
 
     const config = await SystemSetting.findAll();
     const weekendRate = Number(
@@ -251,41 +259,81 @@ export const calculatePayrate = async (
     const nightRate = Number(
       config.find((c) => c.key === "nightShiftRateMultiplier")?.value || 1.5
     );
+    const publicRate = Number(
+      config.find((c) => c.key === "publicRateMultipier")?.value || 2.5
+    );
 
     let baseHours = 0,
       penaltyHours = 0,
       totalPay = 0;
+
     const breakdown: any[] = [];
 
-    for (const shift of shifts) {
-      const hours = differenceInMinutes(shift.endTime, shift.startTime) / 60;
-      let multiplier = 1;
-      let isPenalty = false;
-
-      if (isWeekend(shift.startTime)) {
-        multiplier = weekendRate;
-        isPenalty = true;
+    // Pair "in" and "out" records
+    let sessionStart: Date | null = null;
+    let breaks: { start: Date; end: Date }[] = [];
+    let currentBreakStart: Date | null = null;
+    for (const record of clockRecords) {
+      console.log(record);
+      if (record.status === "in") {
+        sessionStart = record.timestamp;
+        breaks = [];
       }
 
-      const hour = shift.startTime.getHours();
-      if (hour >= 22 || hour < 6) {
-        multiplier = Math.max(multiplier, nightRate);
-        isPenalty = true;
+      if (record.status === "break-start") {
+        currentBreakStart = record.timestamp;
       }
 
-      const effectiveRate = Number(employee.baseRate) * multiplier;
-      const amount = hours * effectiveRate;
-      if (isPenalty) penaltyHours += hours;
-      else baseHours += hours;
-      totalPay += amount;
+      if (record.status === "break-end" && currentBreakStart) {
+        breaks.push({ start: currentBreakStart, end: record.timestamp });
+        currentBreakStart = null;
+      } else if (record.status === "out" && sessionStart) {
+        const totalMinutes = differenceInMinutes(
+          record.timestamp,
+          sessionStart
+        );
 
-      breakdown.push({
-        date: format(shift.startTime, "yyyy-MM-dd"),
-        hours,
-        rate: Number(employee.baseRate),
-        penalty: multiplier,
-        amount,
-      });
+        let multiplier = 1;
+        let isPenalty = false;
+        let breakMinutes = 0;
+        for (const brk of breaks) {
+          breakMinutes += differenceInMinutes(brk.end, brk.start);
+        }
+        const netMinutes = totalMinutes - breakMinutes;
+        const hours = netMinutes / 60;
+        if (isWeekend(sessionStart)) {
+          multiplier = weekendRate;
+          isPenalty = true;
+        }
+
+        const hour = sessionStart.getHours();
+        if (hour >= 22 || hour < 6) {
+          multiplier = Math.max(multiplier, nightRate);
+          isPenalty = true;
+        }
+
+        const effectiveRate = Number(employee.baseRate) * multiplier;
+        const amount = hours * effectiveRate;
+
+        if (isPenalty) penaltyHours += hours;
+        else baseHours += hours;
+
+        totalPay += amount;
+
+        breakdown.push({
+          date: format(sessionStart, "yyyy-MM-dd"),
+          startTime: format(sessionStart, "HH:mm"),
+          endTime: format(record.timestamp, "HH:mm"),
+          breakTime: breakMinutes / 60,
+          hours,
+          rate: Number(employee.baseRate),
+          penalty: multiplier,
+          amount,
+        });
+
+        sessionStart = null;
+        breaks = [];
+      }
     }
 
     res.json({

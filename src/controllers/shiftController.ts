@@ -13,7 +13,6 @@ import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestMod
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 
 // GET /shifts/:id
-
 export const getAllShifts = async (
   _req: Request,
   res: Response,
@@ -61,7 +60,21 @@ export const getShiftsByEmployeeId = async (
     next(error);
   }
 };
-
+//Get /shift by serverid
+export const getShiftByServer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const shifts = await Shift.findAll({
+      where: { serverId: req.params.id },
+    });
+    res.status(200).json(shifts);
+  } catch (error) {
+    next(error);
+  }
+};
 // GET /shifts/range?start=...&end=...
 export const getShiftsByDateRange = async (req: Request, res: Response) => {
   const { start, end } = req.query;
@@ -93,6 +106,7 @@ export const createShift = async (
     const {
       employeeId,
       locationId,
+      serverId,
       startTime,
       endTime,
       status = "pending",
@@ -105,6 +119,7 @@ export const createShift = async (
     const newShift = await Shift.create({
       employeeId,
       locationId,
+      serverId,
       startTime: new Date(startTime),
       endTime: new Date(endTime),
       status,
