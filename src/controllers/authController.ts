@@ -235,6 +235,8 @@ export const loginUser = async (
         {
           accessToken,
           refreshToken,
+          profileImage: searchedUser.profileImage,
+          name: searchedUser.firstName,
         },
         "User Logged In Successfully"
       )

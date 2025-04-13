@@ -3,7 +3,7 @@ import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Chat from "../../models/chatModel";
 import { Employee } from "../../models/employeeModel";
-import { io } from "../../config/socket";
+import { io, MessageData } from "../../config/socket";
 import { createNotification } from "../notificationController";
 
 // send a message to a channel
@@ -43,17 +43,6 @@ const sendMessage = async (
       );
 
     const savedMessage = await Chat.create({ userId, message, channelId });
-    // emit message to all clients in this channel
-
-    // trial check
-    // working
-    // todo :
-    // await createNotification(
-    //   "ExponentPushToken[stgllcG3B8A8hTp7ScLR0x]",
-    //   userId,
-    //   "Pranish send a message",
-    //   message
-    // );
 
     io.to(channelId).emit("newMessage", savedMessage);
 
@@ -75,6 +64,45 @@ const sendMessage = async (
         );
     }
   }
+};
+
+export const saveAndBroadcastMessage = async (
+  data: MessageData,
+  socket: any
+) => {
+  const { author, message, channel, isImage, time, messageId, channelName } =
+    data;
+
+  if (!author?.id)
+    throw new ApiError(
+      StatusCode.BAD_REQUEST,
+      { userId: "" },
+      "User details not provided"
+    );
+
+  if (!message)
+    throw new ApiError(
+      StatusCode.BAD_REQUEST,
+      { message: "" },
+      "Message cannot be empty"
+    );
+
+  if (!channel)
+    throw new ApiError(
+      StatusCode.BAD_REQUEST,
+      { channelId: "" },
+      "Please mention the channel"
+    );
+
+  const savedMessage = await Chat.create({
+    id: messageId,
+    userId: author.id,
+    message,
+    channelId: channel,
+    isImage,
+  });
+  createNotification(author.id, `${author.name} on #${channelName}`, message);
+  io.to(channel).emit("receive_message", data);
 };
 
 // update previously sent message in a channel
@@ -304,3 +332,14 @@ const getChatsByChannel = async (
 };
 
 export { sendMessage, updateMessage, deleteMessage, getChatsByChannel };
+// emit message to all clients in this channel
+
+// trial check
+// working
+// todo :
+// await createNotification(
+//   "ExponentPushToken[stgllcG3B8A8hTp7ScLR0x]",
+//   userId,
+//   "Pranish send a message",
+//   message
+// );

@@ -4,6 +4,7 @@ import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import { Payroll } from "../../models/payrollModel";
 import { getAccessToken } from "../../utils/helper";
+import { createNotification } from "../notificationController";
 
 // change accessToken to userId
 export const addANewSalary = async (

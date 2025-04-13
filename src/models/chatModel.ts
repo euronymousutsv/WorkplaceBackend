@@ -2,19 +2,25 @@ import { Model, DataTypes, Optional } from "sequelize";
 import sequelize from "../config/db";
 import Channel from "./channelModel";
 import { Employee } from "./employeeModel";
+import { bool } from "aws-sdk/clients/signer";
 
 interface ChatAttributes {
   id: string;
   userId: string;
   message: string;
   channelId: string;
+  isImage: boolean;
 }
 
-class Chat extends Model<ChatAttributes, Optional<ChatAttributes, "id">> {
+class Chat extends Model<
+  ChatAttributes,
+  Optional<ChatAttributes, "id" | "isImage">
+> {
   public id!: string;
   public userId!: string;
   public message!: string;
-  public channelId!: string; // Fixed casing
+  public channelId!: string;
+  public isImage?: boolean;
 }
 
 Chat.init(
@@ -36,6 +42,11 @@ Chat.init(
     message: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    isImage: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
     channelId: {
       type: DataTypes.UUID,

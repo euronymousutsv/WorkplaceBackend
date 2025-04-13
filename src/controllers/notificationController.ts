@@ -8,6 +8,7 @@ import { verifyAccessToken } from "../utils/jwtGenerater";
 import { Expo } from "expo-server-sdk";
 import JoinedServer from "../models/joinedServerModel";
 import Notification from "../models/Notifications";
+import { where } from "sequelize";
 
 // helper functions
 const sendPushNotification = async (
@@ -61,7 +62,6 @@ const sendPushNotification = async (
 // notification in database
 // sendPushNotification is called inside this function already. So no need to call that function again.
 export const createNotification = async (
-  expoPushToken: string,
   userId: string,
   title: string,
   body: string
@@ -90,7 +90,13 @@ export const createNotification = async (
     );
   }
 
-  await sendPushNotification(expoPushToken, title, body);
+  const device = await ExpoDeviceToken.findOne({
+    where: { employeeId: userId },
+  });
+  if (device) {
+    await sendPushNotification(device.expoPushToken, title, body);
+  }
+
   return newNotification;
 };
 
