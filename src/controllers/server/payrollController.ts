@@ -3,6 +3,8 @@ import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
 import { Payroll } from "../../models/payrollModel";
+import { getAccessToken } from "../../utils/helper";
+import { createNotification } from "../notificationController";
 
 // change accessToken to userId
 export const addANewSalary = async (
@@ -10,7 +12,6 @@ export const addANewSalary = async (
     {},
     {},
     {
-      accessToken: string;
       startDate: Date;
       endDate: Date;
       hourlyRate: number;
@@ -19,8 +20,8 @@ export const addANewSalary = async (
   >,
   res: Response
 ): Promise<void> => {
-  const { accessToken, startDate, endDate, hourlyRate, totalHours } = req.body;
-
+  const { startDate, endDate, hourlyRate, totalHours } = req.body;
+  const accessToken = getAccessToken(req);
   try {
     if (!accessToken)
       throw new ApiError(
@@ -89,19 +90,11 @@ export const addANewSalary = async (
 };
 
 export const getAEmployeeSalary = async (
-  req: Request<{}, {}, {}, { accessToken: string }>,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const { accessToken } = req.query;
-
   try {
-    if (!accessToken)
-      throw new ApiError(
-        StatusCode.BAD_REQUEST,
-        {},
-        "Access Token cannot be empty."
-      );
-
+    const accessToken = getAccessToken(req);
     const decoded = verifyAccessToken(accessToken);
     const userId = decoded?.userId ?? "";
 
@@ -115,7 +108,13 @@ export const getAEmployeeSalary = async (
       );
     res
       .status(201)
-      .json(new ApiResponse(StatusCode.CREATED, searced, "Server found"));
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          searced,
+          "All employee salary fetched"
+        )
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);

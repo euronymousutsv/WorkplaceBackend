@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "expo-server-sdk": "^3.14.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "node-cache": "^5.1.2",

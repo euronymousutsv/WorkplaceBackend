@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Channel, { Roles } from "../../models/channelModel";
+import { getAccessToken } from "../../utils/helper";
+import { verifyAccessToken } from "../../utils/jwtGenerater";
 
 // Function to create a new channel inside a server
 const createNewChannel = async (
@@ -84,15 +86,47 @@ const getAllChannelForCurrentServer = async (
         "Make sure both Server is provided."
       );
 
-    const allChannel = await Channel.findAll({ where: { serverId: serverId } });
-    if (allChannel.length <= 0) {
+    const accessToken = getAccessToken(req);
+    const role = verifyAccessToken(accessToken)?.role;
+
+    const allChannel = await Channel.findAll({
+      where: { serverId: serverId },
+    });
+
+    const accessibleChannels = allChannel.filter((channel) => {
+      const required = channel.highestRoleToAccessChannel;
+
+      if (role === "admin") {
+        return true; // admin has access to all
+      }
+
+      if (role === "manager") {
+        return (
+          required === null ||
+          required === Roles.EMPLOYEE ||
+          required === Roles.MANAGER
+        );
+      }
+
+      if (role === "employee") {
+        return required === null || required === Roles.EMPLOYEE;
+      }
+
+      return false; // any other roles don't get access
+    });
+
+    if (accessibleChannels.length <= 0) {
       throw new ApiError(StatusCode.NOT_FOUND, {}, "No Channels found");
     }
 
     res
       .status(201)
       .json(
-        new ApiResponse(StatusCode.CREATED, allChannel, "All channels fetched")
+        new ApiResponse(
+          StatusCode.CREATED,
+          accessibleChannels,
+          "All channels fetched"
+        )
       );
   } catch (error) {
     if (error instanceof ApiError) {
@@ -116,14 +150,15 @@ const deleteChannel = async (
   req: Request<
     {},
     {},
+    {},
     {
       channelId: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { channelId } = req.body;
-
+  const { channelId } = req.query;
+  console.log(channelId);
   try {
     if (!channelId)
       throw new ApiError(

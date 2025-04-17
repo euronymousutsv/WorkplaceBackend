@@ -15,6 +15,7 @@ import chatRouter from "./routes/server/chatRoutes";
 import { app, server } from "./config/socket";
 import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
+import notificationRouter from "./routes/notificationRoutes";
 
 // Middleware
 app.use(express.json());
@@ -26,11 +27,15 @@ app.use(
 app.use(bodyParser.json());
 
 // Routes
+app.get("/", (req, res) => {
+  res.send("<h1>WorkHive Api is working </h1>");
+});
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);
 app.use("/api/v1/channel", channelRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/notify", notificationRouter);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
 

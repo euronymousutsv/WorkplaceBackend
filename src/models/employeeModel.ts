@@ -8,10 +8,17 @@ interface EmployeeAttributes {
   email: string;
   googleId?: string;
   phoneNumber?: string;
-  employmentStatus: "Active" | "Inactive";
+  employmentStatus: EmployeeStatus;
   role: "admin" | "employee" | "manager";
   password?: string;
   profileImage?: string;
+}
+
+export enum EmployeeStatus {
+  ACTIVE = "Active",
+  INACTIVE = "InActive",
+  LEAVE = "Leave",
+  TERMINATED = "Terminated",
 }
 
 // Optional fields when creating a new Employee
@@ -40,7 +47,7 @@ class Employee
   public email!: string;
   public googleId?: string;
   public phoneNumber?: string;
-  public employmentStatus!: "Active" | "Inactive";
+  public employmentStatus!: EmployeeStatus;
   public role!: "admin" | "employee" | "manager";
   public password?: string;
   profileImage?: string;
@@ -87,7 +94,7 @@ Employee.init(
       allowNull: false,
     },
     employmentStatus: {
-      type: DataTypes.ENUM("Active", "InActive"),
+      type: DataTypes.ENUM("Active", "InActive", "Leave", "Terminated"),
       allowNull: false,
       defaultValue: "InActive",
     },
@@ -111,6 +118,7 @@ Employee.init(
     tableName: "employee",
     schema: "workplacedb", // Use the correct schema
     timestamps: false,
+    paranoid: true,
   }
 );
 

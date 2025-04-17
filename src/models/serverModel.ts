@@ -52,6 +52,7 @@ Server.init(
   },
   {
     sequelize,
+    paranoid: true,
     tableName: "servers",
     timestamps: true, // Enables createdAt and updatedAt automatically
   }

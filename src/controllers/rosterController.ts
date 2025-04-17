@@ -7,13 +7,15 @@ import sequelize from "../config/db";
 import ApiError from "../utils/apiError";
 import ApiResponse, { StatusCode } from "../utils/apiResponse";
 import { verifyAccessToken } from "../utils/jwtGenerater";
+import Server from "../models/serverModel";
 
 // ✅ **1. Create a Shift**
 const createShift = async (
   req: Request<{}, {}, RosterAttributes>,
   res: Response
 ): Promise<void> => {
-  const { employeeId, officeId, startTime, endTime } = req.body;
+  const { employeeId, officeId, startTime, endTime, date, description } =
+    req.body;
 
   try {
     // Ensure employee and office exist
@@ -30,6 +32,8 @@ const createShift = async (
       officeId,
       startTime,
       endTime,
+      date,
+      description,
     });
 
     res.status(201).json({ message: "Shift created successfully", shift });
@@ -93,6 +97,8 @@ const deleteShift = async (
 };
 
 // ✅ **4. Get All Shifts (Optional: Filter by Employee, Office, or Date Range)**
+
+// not working fix req
 const getShifts = async (
   req: Request<{}, {}, RosterAttributes>,
   res: Response
@@ -126,7 +132,7 @@ const autoAssignShifts = async (
   req: Request<{}, {}, RosterAttributes>,
   res: Response
 ) => {
-  const { officeId, startTime, endTime } = req.body;
+  const { officeId, startTime, endTime, date, description } = req.body;
 
   try {
     // Find employees who are not already assigned to a shift at this time
@@ -153,6 +159,8 @@ const autoAssignShifts = async (
       officeId,
       startTime,
       endTime,
+      date,
+      description,
     });
 
     res
@@ -215,6 +223,214 @@ export const getShiftsForLoggedInUser = async (
           StatusCode.CREATED,
           allShifts!,
           "Shifts fetched successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// fetch all shifts in a office
+export const getShiftsForOffice = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      officeId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { officeId } = req.query;
+
+  try {
+    if (!officeId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { officeId: "" },
+        "officeId cannot be empty."
+      );
+
+    const allShifts = await Roster.findAll({
+      where: { officeId: officeId },
+    });
+
+    if (allShifts.length <= 0) {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(StatusCode.OK, allShifts!, "No Shifts avaivable")
+        );
+    }
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          allShifts!,
+          "Shifts fetched successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// get all offices in a server
+export const getAllOffices = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      serverId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { serverId } = req.query;
+
+  try {
+    if (!serverId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "serverId cannot be empty."
+      );
+
+    const allOffice = await OfficeLocation.findAll({
+      where: { serverId },
+    });
+
+    if (allOffice.length <= 0) {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(StatusCode.OK, allOffice!, "No Offices avaivable")
+        );
+    } else {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(
+            StatusCode.CREATED,
+            allOffice!,
+            "Offices fetched successfully"
+          )
+        );
+    }
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// create a new office location for a server
+export const createAOffice = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      serverId: string;
+      lat: string;
+      long: string;
+      radius: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { serverId, lat, long, radius } = req.query;
+
+  try {
+    if (!serverId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "serverId cannot be empty."
+      );
+
+    if (!lat || !long)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { lat: null, long: null },
+        "Latitute or Longitute is empty"
+      );
+
+    const searchedServer = await Server.findOne({
+      where: { id: serverId },
+    });
+
+    if (!searchedServer)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "Server not found"
+      );
+
+    const latitude = lat ? parseFloat(lat) : 0;
+    const longitude = long ? parseFloat(long) : 0;
+    const radiusValue = radius ? parseFloat(radius) : 5; // Default to 5 if undefined
+
+    if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusValue)) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "Invalid numerical values"
+      );
+    }
+
+    const newOffice = await OfficeLocation.create({
+      latitude,
+      longitude,
+      radius: radiusValue,
+      serverId,
+    });
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          newOffice.dataValues,
+          "New office Created"
         )
       );
   } catch (error) {

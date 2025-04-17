@@ -89,6 +89,7 @@ Payroll.init(
     modelName: "Payroll",
     tableName: "payroll",
     schema: "workplacedb", // Use the correct schema
+    paranoid: true,
     timestamps: false,
   }
 );
