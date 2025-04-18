@@ -18,6 +18,7 @@ import { Roles } from "../../models/channelModel";
 import sequelize from "../../config/db";
 import { join } from "path";
 import { Sequelize } from "sequelize";
+import JoinedOffice from "../../models/joinedOfficeModel";
 
 const registerServer = async (
   req: Request<
@@ -215,18 +216,10 @@ const joinServer = async (
 };
 
 const getLoggedInUserServer = async (
-  req: Request<
-    {},
-    {},
-    {},
-    {
-      accessToken: string;
-    }
-  >,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const { accessToken } = req.query;
-
+  const accessToken = getAccessToken(req);
   try {
     if (!accessToken)
       throw new ApiError(
@@ -249,9 +242,20 @@ const getLoggedInUserServer = async (
 
     if (!joinedServer)
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server Not found");
+
+    const searchedOffice = await JoinedOffice.findOne({
+      where: { id: userId },
+    });
+
     res
       .status(201)
-      .json(new ApiResponse(StatusCode.CREATED, joinedServer!, "Server found"));
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          { joinedServer, searchedOffice },
+          "Server found"
+        )
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);
