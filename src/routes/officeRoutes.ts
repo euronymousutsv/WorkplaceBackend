@@ -17,6 +17,8 @@ router.get(
   verifyLoginStatus,
   getAllEmployeesInOffice
 );
+
+router.get("/getAllOffices", verifyLoginStatus, getAllOffices);
 router.get(
   "/getAllEmployeesInOffice",
   verifyLoginStatus,
