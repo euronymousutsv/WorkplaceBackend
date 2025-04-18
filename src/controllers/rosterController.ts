@@ -374,6 +374,7 @@ export const createOffice = async (
       lat: string;
       long: string;
       radius: string;
+      address: string;
       name: string;
     }
   >,

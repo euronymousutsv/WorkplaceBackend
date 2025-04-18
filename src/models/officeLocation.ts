@@ -5,27 +5,29 @@ import Server from "./serverModel";
 // Define attributes for the OfficeLocation model
 interface OfficeLocationAttributes {
   id: string;
-  name?: string;
+  name: string;
   serverId?: string;
-  latitude?: number;
-  longitude?: number;
-  radius?: number; // Optional field with default value
+  latitude: number;
+  longitude: number;
+  radius: number;
+  createdAt?: Date;
 }
 
 // Define optional fields for Sequelize
 interface OfficeLocationCreationAttributes
-  extends Optional<OfficeLocationAttributes, "id"> {}
+  extends Optional<OfficeLocationAttributes, "id" | "createdAt"> {}
 
 class OfficeLocation
   extends Model<OfficeLocationAttributes, OfficeLocationCreationAttributes>
   implements OfficeLocationAttributes
 {
   public id!: string;
-  public name?: string;
+  public name!: string;
   public serverId!: string;
-  public latitude?: number;
-  public longitude?: number;
-  public radius?: number;
+  public latitude!: number;
+  public longitude!: number;
+  public radius!: number;
+  public createdAt?: Date;
 }
 
 OfficeLocation.init(
@@ -42,7 +44,7 @@ OfficeLocation.init(
 
     serverId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Server,
         key: "id",

@@ -19,6 +19,8 @@ import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
 import { RefreshToken } from "../models/refreshModel";
 import ApiError from "../utils/apiError";
+import sequelize from "../config/db";
+import { EmployeeDetails } from "../models/employeeDetails";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -27,6 +29,15 @@ interface ReqUserData {
   email: string;
   password: string;
   phoneNumber: string;
+  userName: string;
+  role: "admin" | "employee" | "manager";
+  baseRate: string;
+  contractHours?: string;
+  employeeType: "full-time" | "part-time" | "casual";
+  department: string;
+  position: string;
+  managerId?: string;
+  hireDate: Date;
 }
 
 // this will hold the verification code for 5 mins for each user.
@@ -40,7 +51,16 @@ export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
   res: Response
 ): Promise<void> => {
-  const { firstName, lastName, email, password, phoneNumber } = req.body;
+  const {
+    
+    firstName,
+    lastName,
+    email,
+    password,
+    phoneNumber,
+  
+  } = req.body;
+  const t = await sequelize.transaction();
   try {
     // if any of these field is empty it will send a response of 404 error.
     if (!email || !password || !firstName || !lastName || !phoneNumber) {
@@ -93,7 +113,7 @@ export const registerUser = async (
     }
 
     // create a user / employee
-    const newUser = Employee.create({
+    const newUser = await Employee.create({
       firstName: firstName,
       lastName: lastName,
       email: email,
@@ -101,7 +121,9 @@ export const registerUser = async (
       phoneNumber: phoneNumber.toString(),
       employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
+      
     });
+ 
 
     const savedUser = (await newUser).save();
     if (!savedUser)

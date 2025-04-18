@@ -1,5 +1,8 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+import { Roster } from "./rosterModel";
+import { AttendanceEvent } from "./attendancModel";
+import { Payroll } from "./payrollModel";
 
 interface EmployeeAttributes {
   id: string;
@@ -13,7 +16,6 @@ interface EmployeeAttributes {
   password?: string;
   profileImage?: string;
 }
-
 export enum EmployeeStatus {
   ACTIVE = "Active",
   INACTIVE = "InActive",
@@ -116,13 +118,13 @@ Employee.init(
     sequelize,
     modelName: "Employee",
     tableName: "employee",
-    schema: "workplacedb", // Use the correct schema
+    schema: process.env.DB_SCHEMA, // Use the correct schema
     timestamps: false,
-    paranoid: true,
   }
 );
 
 // Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
 // Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
 // Employee.hasMany(Payroll, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+
 export { Employee, EmployeeAttributes };
