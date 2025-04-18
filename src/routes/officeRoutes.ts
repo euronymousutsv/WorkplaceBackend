@@ -4,13 +4,24 @@ import {
   createOffice,
   getAllOffices,
   updateOfficeDetails,
-} from "../controllers/officeController";
+  joinAnEmployeeToOffice,
+  getAllEmployeesInOffice,
+} from "../controllers/server/officeController";
 import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 import { checkPermission, Role } from "../middleware/accessCheckerMiddleware";
 const router = express.Router();
 
 router.get("/getShiftsForOffice", verifyLoginStatus, getShiftsForOffice);
-router.get("/getAllOffices", verifyLoginStatus, getAllOffices);
+router.get(
+  "/getAllEmployeeInOffice",
+  verifyLoginStatus,
+  getAllEmployeesInOffice
+);
+router.get(
+  "/getAllEmployeesInOffice",
+  verifyLoginStatus,
+  getAllEmployeesInOffice
+);
 
 // Only Admin can access this route
 router.post(
@@ -26,6 +37,13 @@ router.patch(
   verifyLoginStatus,
   checkPermission(Role.ADMIN),
   updateOfficeDetails
+);
+
+router.post(
+  "/joinOffice",
+  verifyLoginStatus,
+  // checkPermission(Role.MANAGER),
+  joinAnEmployeeToOffice
 );
 
 export default router;

@@ -1,12 +1,22 @@
 import { Request, Response } from "express";
-import { Roster } from "../models/rosterModel";
-import { OfficeLocation } from "../models/officeLocation";
-import ApiError from "../utils/apiError";
-import ApiResponse, { StatusCode } from "../utils/apiResponse";
-import Server from "../models/serverModel";
+import { Roster } from "../../models/rosterModel";
+import { OfficeLocation } from "../../models/officeLocation";
+import ApiError from "../../utils/apiError";
+import ApiResponse, { StatusCode } from "../../utils/apiResponse";
+import Server from "../../models/serverModel";
 import { EventEmitter } from "stream";
+import { Employee } from "../../models/employeeModel";
+import JoinedOffice from "../../models/joinedOfficeModel";
 
-// fetch all shifts in a office
+enum OfficeDetails {
+  ID = "id",
+  SERVER_ID = "serverId",
+  LATITUDE = "latitude",
+  LONGITUDE = "longitude",
+  RADIUS = "radius",
+  NAME = "name",
+}
+// // fetch all shifts in a office
 const getShiftsForOffice = async (
   req: Request<
     {},
@@ -97,6 +107,70 @@ const getAllOffices = async (
         .status(201)
         .json(
           new ApiResponse(StatusCode.OK, allOffice!, "No Offices avaivable")
+        );
+    } else {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(
+            StatusCode.CREATED,
+            allOffice!,
+            "Offices fetched successfully"
+          )
+        );
+    }
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+// get all employees in a office
+const getAllEmployeesInOffice = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      officeId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { officeId } = req.query;
+
+  try {
+    if (!officeId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { officeId: "" },
+        "officeId cannot be empty."
+      );
+
+    const allOffice = await JoinedOffice.findAll({
+      where: { officeId },
+    });
+
+    if (allOffice.length <= 0) {
+      res
+        .status(201)
+        .json(
+          new ApiResponse(
+            StatusCode.OK,
+            allOffice!,
+            "No Employees in this office"
+          )
         );
     } else {
       res
@@ -223,14 +297,6 @@ const createOffice = async (
   }
 };
 
-enum OfficeDetails {
-  ID = "id",
-  SERVER_ID = "serverId",
-  LATITUDE = "latitude",
-  LONGITUDE = "longitude",
-  RADIUS = "radius",
-  NAME = "name",
-}
 // update officeDetails
 const updateOfficeDetails = async (
   req: Request<
@@ -336,4 +402,110 @@ const updateOfficeDetails = async (
   }
 };
 
-export { getShiftsForOffice, getAllOffices, createOffice, updateOfficeDetails };
+const joinAnEmployeeToOffice = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      officeId: string;
+      employeeId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  const { officeId, employeeId } = req.query;
+  try {
+    if (!officeId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { officeId: "" },
+        "officeId cannot be empty."
+      );
+    if (!employeeId)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { employeeId: "" },
+        "employeeId cannot be empty."
+      );
+    // Check if the office exists
+    const searchedOffice = await OfficeLocation.findOne({
+      where: { id: officeId },
+    });
+    if (!searchedOffice)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { officeId: "" },
+        "Office not found"
+      );
+
+    // Check if the employee exists
+    const searchedEmployee = await Employee.findOne({
+      where: { id: employeeId },
+    });
+
+    if (!searchedEmployee)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { employeeId: "" },
+        "Employee not found"
+      );
+
+    // Check if the employee is already joined to the office
+    const joinedOffice = await JoinedOffice.findOne({
+      where: { id: employeeId },
+    });
+    console.log("joining office");
+
+    if (joinedOffice)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { officeId: "" },
+        "Employee already joined to the office"
+      );
+
+    // Join the employee to the office
+    const newJoinedOffice = await JoinedOffice.create({
+      officeId: officeId,
+      id: employeeId,
+    });
+    if (!newJoinedOffice)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Unable to join employee to the office"
+      );
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          StatusCode.CREATED,
+          newJoinedOffice.dataValues,
+          "Employee joined to the office successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
+export {
+  getShiftsForOffice,
+  getAllEmployeesInOffice,
+  getAllOffices,
+  createOffice,
+  updateOfficeDetails,
+  joinAnEmployeeToOffice,
+};

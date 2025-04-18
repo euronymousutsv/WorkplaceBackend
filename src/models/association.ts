@@ -11,6 +11,7 @@ import Server from "./serverModel";
 import JoinedServer from "./joinedServerModel";
 import { ExpoDeviceToken } from "./deviceTokenModel";
 import Notification from "./Notifications";
+import JoinedOffice from "./joinedOfficeModel";
 
 // Define associations AFTER models are imported
 Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
@@ -42,8 +43,14 @@ ExpoDeviceToken.belongsTo(Employee, { foreignKey: "id" });
 
 Server.hasMany(JoinedServer, { foreignKey: "serverId" });
 JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
+Server.hasMany(OfficeLocation, { foreignKey: "serverId" });
+OfficeLocation.belongsTo(Server, { foreignKey: "serverId" });
 
-Channel.belongsTo(Server, { foreignKey: "serverId" });
+JoinedOffice.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+
+// Channel.belongsTo(Server, { foreignKey: "serverId" });
+Channel.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+
 Chat.belongsTo(Channel, { foreignKey: "channelId", as: "channels" });
 Channel.hasMany(Chat, { foreignKey: "channelId" });
 
