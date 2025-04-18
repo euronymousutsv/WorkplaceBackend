@@ -3,6 +3,9 @@ import { Request, Response, NextFunction } from "express";
 import { SystemSetting } from "../models/systemSetting";
 import { Op } from "sequelize";
 import { SystemConfig } from "../types/controllerTypes";
+import ApiError from "../utils/apiError";
+import ApiResponse,{StatusCode} from "../utils/apiResponse";
+
 // Get all settings
 export const getAllSystemSettings = async (
   _req: Request,
@@ -11,9 +14,9 @@ export const getAllSystemSettings = async (
 ) => {
   try {
     const settings = await SystemSetting.findAll();
-    res.json(settings);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, settings, "System settings retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve system settings"));
   }
 };
 
@@ -25,17 +28,19 @@ export const getSystemSetting = async (
 ) => {
   try {
     const id = req.params.key;
-    console.log(req.params.key);
     const setting = await SystemSetting.findOne({
       where: { key: id },
     });
     if (!setting) {
-      res.status(404).json({ message: "Setting not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Setting not found");
     }
-    res.json(setting);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, setting, "System setting retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve system setting"));
+    }
   }
 };
 
@@ -46,14 +51,39 @@ export const createSystemSetting = async (
   next: NextFunction
 ) => {
   try {
-    console.log({ ...req.body });
+    const { key, value, description } = req.body;
+
+    // Validate required fields
+    if (!key) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Setting key is required");
+    }
+    if (!value) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Setting value is required");
+    }
+
+    // Check if setting with same key already exists
+    const existingSetting = await SystemSetting.findOne({
+      where: { key },
+    });
+
+    if (existingSetting) {
+      throw new ApiError(StatusCode.CONFLICT, {}, "Setting with this key already exists");
+    }
+
     const setting = await SystemSetting.create({
-      ...req.body,
+      key,
+      value,
+      description,
       createdAt: new Date(),
     });
-    res.status(201).json(setting);
+
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, setting, "System setting created successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create system setting"));
+    }
   }
 };
 
@@ -64,17 +94,52 @@ export const updateSystemSetting = async (
   next: NextFunction
 ) => {
   try {
-    const [affectedCount, affectedRows] = await SystemSetting.update(req.body, {
-      where: { id: req.params.id },
-      returning: true,
-    });
-    if (affectedCount === 0) {
-      res.status(404).json({ message: "Setting not found" });
-      return;
+    const { key, value, description } = req.body;
+    const id = req.params.id;
+
+    // Validate required fields
+    if (!key) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Setting key is required");
     }
-    res.json(affectedRows[0]);
+    if (!value) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Setting value is required");
+    }
+
+    // Check if setting exists
+    const existingSetting = await SystemSetting.findByPk(id);
+    if (!existingSetting) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Setting not found");
+    }
+
+    // Check if key is being changed and if new key already exists
+    if (key !== existingSetting.key) {
+      const keyExists = await SystemSetting.findOne({
+        where: { key },
+      });
+      if (keyExists) {
+        throw new ApiError(StatusCode.CONFLICT, {}, "Setting with this key already exists");
+      }
+    }
+
+    const [affectedCount, affectedRows] = await SystemSetting.update(
+      { key, value, description },
+      {
+        where: { id },
+        returning: true,
+      }
+    );
+
+    if (affectedCount === 0) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Setting not found");
+    }
+
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, affectedRows[0], "System setting updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update system setting"));
+    }
   }
 };
 
@@ -127,6 +192,7 @@ export const getSystemConfig = async (): Promise<SystemConfig> => {
     ),
   };
 };
+
 export const getSystemConfigHandler = async (
   _req: Request,
   res: Response,
@@ -134,8 +200,8 @@ export const getSystemConfigHandler = async (
 ) => {
   try {
     const config = await getSystemConfig();
-    res.json(config);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, config, "System configuration retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve system configuration"));
   }
 };
