@@ -118,6 +118,7 @@ const fetchAllNotifications = async (
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Missing userId.");
     }
 
+    console.log("userId", userId);
     // Fetch all notifications for the user from the database
     const notifications = await Notification.findAll({
       where: {
@@ -125,15 +126,6 @@ const fetchAllNotifications = async (
       },
       order: [["createdAt", "DESC"]], // order by init_time (latest first)
     });
-
-    // If no notifications found, throw an error
-    if (!notifications || notifications.length === 0) {
-      res
-        .status(200)
-        .json(
-          new ApiResponse(StatusCode.OK, notifications, "No notifications")
-        );
-    }
     // Respond with the notifications
     res
       .status(200)
