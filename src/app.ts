@@ -29,6 +29,7 @@ app.use(
     origin: "*",
   })
 );
+app.options("*", cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
