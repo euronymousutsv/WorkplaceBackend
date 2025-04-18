@@ -17,6 +17,10 @@ import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
 import notificationRouter from "./routes/notificationRoutes";
 
+import businessRoutes from "./routes/businessLogicRoutes";
+import shiftRoutes from "./routes/shiftRoutes";
+import locationRoutes from "./routes/locationRoutes";
+import systemSettingRoutes from "./routes/settingRoutes";
 // Middleware
 app.use(express.json());
 app.use(
@@ -24,12 +28,18 @@ app.use(
     origin: "*",
   })
 );
+app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.get("/", (req, res) => {
   res.send("<h1>WorkHive Api is working </h1>");
 });
+app.use("/api/system-settings", systemSettingRoutes);
+app.use("/api/locations", locationRoutes);
+app.use("/api/shift", shiftRoutes);
+app.use("/api/businessLogic", businessRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);

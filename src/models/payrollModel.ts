@@ -90,6 +90,7 @@ Payroll.init(
     tableName: "payroll",
     schema: "workplacedb", // Use the correct schema
     paranoid: true,
+    // schema: "workplacedb", // Use the correct schema
     timestamps: false,
   }
 );

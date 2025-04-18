@@ -27,6 +27,15 @@ interface ReqUserData {
   email: string;
   password: string;
   phoneNumber: string;
+  userName: string;
+  role: "admin" | "employee" | "manager";
+  baseRate: string;
+  contractHours?: string;
+  employeeType: "full-time" | "part-time" | "casual";
+  department: string;
+  position: string;
+  managerId?: string;
+  hireDate: Date;
 }
 
 // this will hold the verification code for 5 mins for each user.
@@ -40,7 +49,21 @@ export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
   res: Response
 ): Promise<void> => {
-  const { firstName, lastName, email, password, phoneNumber } = req.body;
+  const {
+    userName,
+    firstName,
+    lastName,
+    email,
+    password,
+    phoneNumber,
+    role,
+    baseRate,
+    contractHours,
+    employeeType,
+    department,
+    position,
+    hireDate,
+  } = req.body;
   try {
     // if any of these field is empty it will send a response of 404 error.
     if (!email || !password || !firstName || !lastName || !phoneNumber) {
@@ -101,6 +124,13 @@ export const registerUser = async (
       phoneNumber: phoneNumber.toString(),
       employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
+      username: userName,
+      baseRate: baseRate,
+      contractHours: contractHours,
+      employeeType: "full-time",
+      department: department,
+      position: position,
+      hireDate: hireDate,
     });
 
     const savedUser = (await newUser).save();
