@@ -32,7 +32,7 @@ const syncDatabase = async () => {
       "🛠 Dropping foreign key constraints to prevent dependency errors..."
     );
     //await sequelize.query("DROP SCHEMA IF EXISTS workplacedb CASCADE;");
-   // await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
+  // await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
 
     console.log("🛠 Recreating schema...");
     //sequelize.query("CREATE SCHEMA production;"); // ✅ Ensures schema is created before tables

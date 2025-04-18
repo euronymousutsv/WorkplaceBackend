@@ -9,14 +9,27 @@ export interface ShiftAttributes {
   locationId?: string;
   startTime: Date;
   endTime: Date;
-  status: "pending" | "assigned" | "active" | "completed" | "cancelled";
+  status: ShiftStatus;
   notes?: string;
-  repeatFrequency?: "none" | "weekly" | "fortnightly";
+  repeatFrequency?: RepeatFrequency;
   parentShiftId?: number;
   repeatEndDate?: Date;
   createdAt?: Date;
   serverId?: string;
 }
+export enum ShiftStatus {
+  PENDING = "pending",
+  ASSIGNED = "assigned",
+  ACTIVE = "active",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+}
+export enum RepeatFrequency {
+  NONE = "none",
+  WEEKLY = "weekly",
+  FORTNIGHTLY = "fortnightly",
+}
+
 
 export interface ShiftCreationAttributes
   extends Optional<
@@ -41,9 +54,9 @@ export class Shift
   public locationId?: string;
   public startTime!: Date;
   public endTime!: Date;
-  public status!: "pending" | "assigned" | "active" | "completed" | "cancelled";
+  public status!: ShiftStatus;
   public notes?: string;
-  public repeatFrequency?: "none" | "weekly" | "fortnightly";
+  public repeatFrequency?: RepeatFrequency;
   public parentShiftId?: number;
   public repeatEndDate?: Date;
   public createdAt?: Date;

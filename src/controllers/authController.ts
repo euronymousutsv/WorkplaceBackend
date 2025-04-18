@@ -52,19 +52,13 @@ export const registerUser = async (
   res: Response
 ): Promise<void> => {
   const {
-    userName,
+    
     firstName,
     lastName,
     email,
     password,
     phoneNumber,
-    role,
-    baseRate,
-    contractHours,
-    employeeType,
-    department,
-    position,
-    hireDate,
+  
   } = req.body;
   const t = await sequelize.transaction();
   try {
@@ -128,17 +122,8 @@ export const registerUser = async (
       employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
       
-    },{transaction: t});
-    await EmployeeDetails.create({
-      employeeId:newUser.id,
-      username: userName,
-      baseRate: baseRate,
-      contractHours: contractHours,
-      employeeType: "full-time",
-      department: department,
-      position: position,
-      hireDate: hireDate,
-    })
+    });
+ 
 
     const savedUser = (await newUser).save();
     if (!savedUser)

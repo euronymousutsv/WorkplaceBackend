@@ -11,6 +11,8 @@ import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
+import ApiError from "../utils/apiError";
+import ApiResponse, { StatusCode } from "../utils/apiResponse";
 
 // GET /shifts/:id
 export const getAllShifts = async (
@@ -99,8 +101,7 @@ export const getShiftsByDateRange = async (req: Request, res: Response) => {
 // POST /shifts
 export const createShift = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ) => {
   try {
     const {
@@ -115,6 +116,7 @@ export const createShift = async (
       parentShiftId,
       repeatEndDate,
     } = req.body;
+    if (!employeeId) throw new ApiError(StatusCode.BAD_REQUEST,{employeeId: null},"Missing EmployeeId")
 
     const newShift = await Shift.create({
       employeeId,
@@ -129,9 +131,21 @@ export const createShift = async (
       repeatEndDate: repeatEndDate ? new Date(repeatEndDate) : undefined,
     });
 
-    res.status(201).json(newShift);
+    res.status(201).json(new ApiResponse (StatusCode.CREATED, newShift, "Shift Created"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
   }
 };
 

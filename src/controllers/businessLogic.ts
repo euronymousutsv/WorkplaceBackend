@@ -10,7 +10,7 @@ import {
   format,
 } from "date-fns";
 import { Employee } from "../models/employeeModel";
-import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
+import { Shift, ShiftStatus } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { SystemSetting } from "../models/systemSetting";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
@@ -428,7 +428,7 @@ export const assignShifts = async (
         locationId: location.id,
         startTime,
         endTime,
-        status: "assigned",
+        status: ShiftStatus.ACTIVE,
         notes: "Auto-assigned",
       });
 

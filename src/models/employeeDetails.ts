@@ -148,8 +148,8 @@ EmployeeDetails.init(
   },
   {
     sequelize,
-    modelName: "Employee",
-    tableName: "employee",
+    modelName: "EmployeeDetails",
+    tableName: "employeeDetails",
     schema: "production", // Use the correct schema
     timestamps: false,
     paranoid: true,
