@@ -16,6 +16,7 @@ import { app, server } from "./config/socket";
 import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
 import notificationRouter from "./routes/notificationRoutes";
+import officeRoutes from "./routes/officeRoutes";
 
 // Middleware
 app.use(express.json());
@@ -36,6 +37,7 @@ app.use("/api/v1/server", serverRouter);
 app.use("/api/v1/channel", channelRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/notify", notificationRouter);
+app.use("/api/v1/office", officeRoutes);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
 

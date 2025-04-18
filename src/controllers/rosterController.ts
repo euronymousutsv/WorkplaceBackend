@@ -302,6 +302,7 @@ export const getShiftsForOffice = async (
   }
 };
 
+// 🆗 working
 // get all offices in a server
 export const getAllOffices = async (
   req: Request<
@@ -363,7 +364,7 @@ export const getAllOffices = async (
 };
 
 // create a new office location for a server
-export const createAOffice = async (
+export const createOffice = async (
   req: Request<
     {},
     {},
@@ -373,11 +374,12 @@ export const createAOffice = async (
       lat: string;
       long: string;
       radius: string;
+      name: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { serverId, lat, long, radius } = req.query;
+  const { serverId, lat, long, radius, name } = req.query;
 
   try {
     if (!serverId)
@@ -394,15 +396,11 @@ export const createAOffice = async (
         "Latitute or Longitute is empty"
       );
 
-    const searchedServer = await Server.findOne({
-      where: { id: serverId },
-    });
-
-    if (!searchedServer)
+    if (!name)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
-        { serverId: "" },
-        "Server not found"
+        { name: null },
+        "Name cannot be empty"
       );
 
     const latitude = lat ? parseFloat(lat) : 0;
@@ -416,12 +414,24 @@ export const createAOffice = async (
         "Invalid numerical values"
       );
     }
+    // Check if the server exists
+    const searchedServer = await Server.findOne({
+      where: { id: serverId },
+    });
+
+    if (!searchedServer)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        { serverId: "" },
+        "Server not found"
+      );
 
     const newOffice = await OfficeLocation.create({
       latitude,
       longitude,
       radius: radiusValue,
       serverId,
+      name,
     });
 
     res
