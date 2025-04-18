@@ -111,7 +111,7 @@ ShiftRequest.init(
     sequelize,
     modelName: "ShiftRequest",
     tableName: "shift_requests",
-    schema: "production",
+    schema: process.env.DB_SCHEMA,
     timestamps: false,
   }
 );

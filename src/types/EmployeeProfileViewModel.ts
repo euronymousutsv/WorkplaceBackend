@@ -49,7 +49,7 @@ export interface EmployeeProfileViewModel {
             employeeType: emp.employeeDetails.employeeType,
             department: emp.employeeDetails.department,
             position: emp.employeeDetails.position,
-            managerId: emp.employeeDetails.managerId,
+            //managerId: emp.employeeDetails.managerId,
             hireDate: emp.employeeDetails.hireDate,
           }
         : undefined,
@@ -89,7 +89,7 @@ export const getEmployeeProfileById = async (
             employeeType: employee.employeeDetails.employeeType,
             department: employee.employeeDetails.department,
             position: employee.employeeDetails.position,
-            managerId: employee.employeeDetails.managerId,
+            //managerId: employee.employeeDetails.managerId,
             hireDate: employee.employeeDetails.hireDate,
           }
         : undefined,

@@ -11,9 +11,9 @@ interface EmployeeDetailsAttributes {
   employeeType: "full-time" | "part-time" | "casual";
   department: string;
   position: string;
-  managerId?: string;
+ // managerId?: string;
   hireDate: Date;
-  createdAt?: Date;
+  //createdAt?: Date;
 }
 
 // Optional fields when creating a new Employee
@@ -21,9 +21,8 @@ interface EmployeeDetailsCreationAttributes
   extends Optional<
     EmployeeDetailsAttributes,
     | "id"
-    | "managerId"
     | "contractHours"
-    | "createdAt"
+  
   > {}
 
 class EmployeeDetails
@@ -38,7 +37,7 @@ class EmployeeDetails
   public employeeType!: "full-time" | "part-time" | "casual";
   public department!: string;
   public position!: string;
-  public managerId?: string;
+  //public managerId?: string;
   public hireDate!: Date;
   public createdAt?: Date;
 }
@@ -137,21 +136,16 @@ EmployeeDetails.init(
     },
     department: { type: DataTypes.STRING, allowNull: false },
     position: { type: DataTypes.STRING(100), allowNull: false },
-    managerId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      references: { model: Employee, key: "id" },
-      onDelete: "CASCADE",
-    },
+   
     hireDate: { type: DataTypes.DATE, allowNull: false },
-    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    //createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
     sequelize,
     modelName: "EmployeeDetails",
     tableName: "employeeDetails",
-    schema: "production", // Use the correct schema
-    timestamps: false,
+    schema: process.env.DB_SCHEMA, // Use the correct schema
+    timestamps: true,
     paranoid: true,
   }
 );

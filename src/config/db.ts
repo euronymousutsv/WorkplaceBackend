@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { env } from "process";
 import { Sequelize } from "sequelize";
 dotenv.config();
 const user_name = process.env.DB_USER;
@@ -20,7 +21,7 @@ const sequelize = new Sequelize(
         rejectUnauthorized: false, // Allow self-signed SSL
       },
     },
-    schema: "production",
+    schema: process.env.DB_SCHEMA,
   }
 );
 

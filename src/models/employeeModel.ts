@@ -118,7 +118,7 @@ Employee.init(
     sequelize,
     modelName: "Employee",
     tableName: "employee",
-    schema: "production", // Use the correct schema
+    schema: process.env.DB_SCHEMA, // Use the correct schema
     timestamps: false,
   }
 );
