@@ -19,6 +19,8 @@ import { randomBytes } from "crypto";
 import NodeCache from "node-cache";
 import { RefreshToken } from "../models/refreshModel";
 import ApiError from "../utils/apiError";
+import sequelize from "../config/db";
+import { EmployeeDetails } from "../models/employeeDetails";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -64,6 +66,7 @@ export const registerUser = async (
     position,
     hireDate,
   } = req.body;
+  const t = await sequelize.transaction();
   try {
     // if any of these field is empty it will send a response of 404 error.
     if (!email || !password || !firstName || !lastName || !phoneNumber) {
@@ -116,7 +119,7 @@ export const registerUser = async (
     }
 
     // create a user / employee
-    const newUser = Employee.create({
+    const newUser = await Employee.create({
       firstName: firstName,
       lastName: lastName,
       email: email,
@@ -124,6 +127,10 @@ export const registerUser = async (
       phoneNumber: phoneNumber.toString(),
       employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
+      
+    },{transaction: t});
+    await EmployeeDetails.create({
+      employeeId:newUser.id,
       username: userName,
       baseRate: baseRate,
       contractHours: contractHours,
@@ -131,7 +138,7 @@ export const registerUser = async (
       department: department,
       position: position,
       hireDate: hireDate,
-    });
+    })
 
     const savedUser = (await newUser).save();
     if (!savedUser)

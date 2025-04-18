@@ -2,6 +2,7 @@ import { AttendanceEvent } from "./attendancModel";
 import Channel from "./channelModel";
 import Chat from "./chatModel";
 import { Employee } from "./employeeModel";
+import { EmployeeDetails } from "./employeeDetails";
 import { OfficeLocation } from "./officeLocation";
 import { Payroll } from "./payrollModel";
 import { RefreshToken } from "./refreshModel";
@@ -19,14 +20,13 @@ import { ShiftRequest } from "./roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
 // Define associations AFTER models are imported
-
+export const associateModels =()=>{
 Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
 Employee.hasMany(Payroll, { foreignKey: "employeeId", onDelete: "CASCADE" });
 Employee.hasMany(AttendanceEvent, {
   foreignKey: "employeeId",
   onDelete: "CASCADE",
 });
-
 Roster.belongsTo(Employee, { foreignKey: "employeeId" });
 Roster.belongsTo(OfficeLocation, {
   foreignKey: "officeId",
@@ -131,5 +131,8 @@ Employee.hasMany(Document, { foreignKey: "employeeId", onDelete: "CASCADE" });
 
 // documentModel.ts
 Document.belongsTo(Employee, { foreignKey: "employeeId", onDelete: "CASCADE" });
+//EmployeeModel.ts
+EmployeeDetails.belongsTo(Employee,{foreignKey:'employeeId', as:'employee'})
 
-export default {};
+Employee.hasOne(EmployeeDetails,{foreignKey:'employeeId', as:'employeeDetails'})}
+ 

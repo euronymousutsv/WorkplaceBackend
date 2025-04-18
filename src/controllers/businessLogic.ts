@@ -14,6 +14,8 @@ import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { SystemSetting } from "../models/systemSetting";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
+import { EmployeeDetails } from "../models/employeeDetails";
+import { getAllEmployeeProfiles, getEmployeeProfileById } from "../types/EmployeeProfileViewModel";
 
 const calculateDistance = (
   lat1: number,
@@ -103,7 +105,8 @@ export const getWeeklyRoster = async (
       : new Date();
     const weekStart = startOfWeek(inputDate);
     const weekEnd = addDays(weekStart, 6);
-    const employees = await Employee.findAll();
+    const employees =await  getAllEmployeeProfiles();
+  
 
     const days = Array.from({ length: 7 }, (_, i) => {
       const date = addDays(weekStart, i);
@@ -155,7 +158,7 @@ export const getWeeklyRoster = async (
         return {
           id: employee.id,
           name: `${employee.firstName} ${employee.lastName}`,
-          type: employee.employeeType,
+          type: employee.details?.employeeType,
           shifts: shiftsByDay,
           totalHours,
         };
@@ -184,7 +187,7 @@ export const getDashboardSummary = async (
     const weekStart = startOfWeek(now);
     const weekEnd = addDays(weekStart, 6);
 
-    const employees = await Employee.findAll();
+    const employees = await getAllEmployeeProfiles();
     const shifts = await Shift.findAll();
 
     const activeShifts = shifts.filter(
@@ -204,7 +207,7 @@ export const getDashboardSummary = async (
       for (const shift of weeklyShifts) {
         const hours = differenceInMinutes(shift.endTime, shift.startTime) / 60;
         let multiplier = isWeekend(shift.startTime) ? 1.5 : 1;
-        weeklyPayroll += hours * Number(emp.baseRate) * multiplier;
+        weeklyPayroll += hours * Number(emp.details?.baseRate) * multiplier;
       }
     }
 
@@ -234,7 +237,7 @@ export const calculatePayrate = async (
   try {
     const { employeeId, startDate, endDate } = req.body;
 
-    const employee = await Employee.findByPk(employeeId);
+    const employee = await getEmployeeProfileById(employeeId);
     if (!employee) {
       res.status(404).json({ message: "Employee not found" });
       return;
@@ -312,7 +315,7 @@ export const calculatePayrate = async (
           isPenalty = true;
         }
 
-        const effectiveRate = Number(employee.baseRate) * multiplier;
+        const effectiveRate = Number(employee.details?.baseRate) * multiplier;
         const amount = hours * effectiveRate;
 
         if (isPenalty) penaltyHours += hours;
@@ -326,7 +329,7 @@ export const calculatePayrate = async (
           endTime: format(record.timestamp, "HH:mm"),
           breakTime: breakMinutes / 60,
           hours,
-          rate: Number(employee.baseRate),
+          rate: Number(employee.details?.baseRate),
           penalty: multiplier,
           amount,
         });
@@ -340,11 +343,11 @@ export const calculatePayrate = async (
       employee: {
         id: employee.id,
         name: `${employee.firstName} ${employee.lastName}`,
-        employeeType: employee.employeeType,
+        employeeType: employee.details?.employeeType,
       },
       baseHours,
       penaltyHours,
-      baseRate: Number(employee.baseRate),
+      baseRate: Number(employee.details?.baseRate),
       totalPay,
       breakdown,
     });
@@ -362,7 +365,7 @@ export const assignShifts = async (
   try {
     const { date, locationId } = req.body;
     const targetDate = new Date(date);
-    const employees = await Employee.findAll();
+    const employees = await getAllEmployeeProfiles();
     const location = await OfficeLocation.findByPk(locationId);
 
     if (!location) {
@@ -404,14 +407,14 @@ export const assignShifts = async (
 
       let startTime = new Date(targetDate);
       let endTime = new Date(targetDate);
-      if (emp.employeeType === "full-time" && !isWeekend(targetDate)) {
+      if (emp.details?.employeeType === "full-time" && !isWeekend(targetDate)) {
         startTime.setHours(9);
         endTime.setHours(17);
-      } else if (emp.employeeType === "part-time") {
+      } else if (emp.details?.employeeType === "part-time") {
         startTime.setHours(12);
         endTime.setHours(18);
       } else if (
-        emp.employeeType === "casual" &&
+        emp.details?.employeeType === "casual" &&
         (isWeekend(targetDate) || Math.random() > 0.5)
       ) {
         startTime.setHours(18);

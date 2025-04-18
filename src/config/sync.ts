@@ -5,7 +5,7 @@ import { AttendanceEvent } from "../models/attendancModel";
 import { OfficeLocation } from "../models/officeLocation";
 import { Payroll } from "../models/payrollModel";
 import { Roster } from "../models/rosterModel";
-import "../models/association";
+import { associateModels } from "../models/association";
 import Chat from "../models/chatModel";
 import Server from "../models/serverModel";
 import Channel from "../models/channelModel";
@@ -20,7 +20,9 @@ import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
+import { EmployeeDetails } from "../models/employeeDetails";
 const syncDatabase = async () => {
+  associateModels();
   try {
     console.log("🔄 Connecting to the database...");
     await sequelize.authenticate();
@@ -30,13 +32,14 @@ const syncDatabase = async () => {
       "🛠 Dropping foreign key constraints to prevent dependency errors..."
     );
     //await sequelize.query("DROP SCHEMA IF EXISTS workplacedb CASCADE;");
-    //await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
+   // await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
 
     console.log("🛠 Recreating schema...");
     //sequelize.query("CREATE SCHEMA production;"); // ✅ Ensures schema is created before tables
 
     console.log("🔄 Recreating tables...");
     await Employee.sync({ alter: true });
+    await EmployeeDetails.sync({alter:true});
     await RefreshToken.sync({
       alter: true,
     });
