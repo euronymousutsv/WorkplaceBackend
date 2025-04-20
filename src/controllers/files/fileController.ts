@@ -40,7 +40,7 @@ const upload = async (
 
     const uploadParams = {
       Bucket: bucketName as string,
-      Key: `${Date.now()}_${file.originalname}`,
+      Key: `${Date.now()}_${file.originalname.trim().replace(/\s+/g, "_")}`,
       Body: file.buffer,
       ACL: "public-read" as ObjectCannedACL,
     };
