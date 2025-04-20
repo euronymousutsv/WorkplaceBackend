@@ -12,6 +12,7 @@ import Server from "./serverModel";
 import JoinedServer from "./joinedServerModel";
 import { ExpoDeviceToken } from "./deviceTokenModel";
 import Notification from "./Notifications";
+import JoinedOffice from "./joinedOfficeModel";
 
 import { BreakPeriod } from "./roster-clockinout-shifts/BreakPeriodModel";
 import { ClockInOut } from "./roster-clockinout-shifts/clockModel";
@@ -20,119 +21,163 @@ import { ShiftRequest } from "./roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
 // Define associations AFTER models are imported
-export const associateModels =()=>{
-Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
-Employee.hasMany(Payroll, { foreignKey: "employeeId", onDelete: "CASCADE" });
-Employee.hasMany(AttendanceEvent, {
-  foreignKey: "employeeId",
-  onDelete: "CASCADE",
-});
-Roster.belongsTo(Employee, { foreignKey: "employeeId" });
-Roster.belongsTo(OfficeLocation, {
-  foreignKey: "officeId",
-  as: "officeLocation",
-});
+export const associateModels = () => {
+  Employee.hasOne(EmployeeDetails, {
+    foreignKey: "employeeId",
+    as: "detailsEmployee",
+  });
+  EmployeeDetails.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employeeDetails",
+  });
+  Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
+  Employee.hasMany(Payroll, { foreignKey: "employeeId", onDelete: "CASCADE" });
+  Employee.hasMany(AttendanceEvent, {
+    foreignKey: "employeeId",
+    onDelete: "CASCADE",
+  });
+  Roster.belongsTo(Employee, { foreignKey: "employeeId" });
+  Roster.belongsTo(OfficeLocation, {
+    foreignKey: "officeId",
+    as: "officeLocation",
+  });
 
-// joined server
-Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
-JoinedServer.belongsTo(Employee, { foreignKey: "id" });
+  // joined server
+  Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
+  JoinedServer.belongsTo(Employee, { foreignKey: "id" });
+  JoinedOffice.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+  Employee.hasOne(JoinedOffice, {
+    foreignKey: "id",
+    onDelete: "CASCADE",
+  });
 
-// notificaiton
-Notification.belongsTo(Employee, {
-  foreignKey: "employeeId",
-  as: "employee",
-});
+  JoinedOffice.belongsTo(Employee, {
+    foreignKey: "id", // `id` in JoinedOffice refers to Employee's id
+    targetKey: "id",
+    as: "employee",
+  });
+  // notificaiton
+  Notification.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employee",
+  });
 
-// expo device token
-Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });
-ExpoDeviceToken.belongsTo(Employee, { foreignKey: "id" });
+  // expo device token
+  Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });
+  ExpoDeviceToken.belongsTo(Employee, { foreignKey: "id" });
 
-Server.hasMany(JoinedServer, { foreignKey: "serverId" });
-JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
+  Server.hasMany(JoinedServer, { foreignKey: "serverId" });
+  JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
+  Server.hasMany(OfficeLocation, { foreignKey: "serverId" });
+  OfficeLocation.belongsTo(Server, { foreignKey: "serverId" });
 
-Channel.belongsTo(Server, { foreignKey: "serverId" });
-Chat.belongsTo(Channel, { foreignKey: "channelId", as: "channels" });
-Channel.hasMany(Chat, { foreignKey: "channelId" });
+  // Channel.belongsTo(Server, { foreignKey: "serverId" });
+  Channel.belongsTo(OfficeLocation, { foreignKey: "officeId" });
 
-Employee.hasMany(Chat, { foreignKey: "userId", onDelete: "CASCADE" });
-Chat.belongsTo(Employee, { foreignKey: "userId" });
+  Chat.belongsTo(Channel, { foreignKey: "channelId", as: "channels" });
+  Channel.hasMany(Chat, { foreignKey: "channelId" });
 
-//Location
-OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
-//Shift
-OfficeLocation.hasMany(Shift, { foreignKey: "employeeId", as: "shifts" });
-Shift.belongsTo(OfficeLocation, { foreignKey: "locationId", as: " location" });
+  Employee.hasMany(Chat, { foreignKey: "userId", onDelete: "CASCADE" });
+  Chat.belongsTo(Employee, { foreignKey: "userId" });
 
-Employee.hasMany(Shift, { foreignKey: "employeeId", as: "shifts" });
-Shift.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+  //Location
+  OfficeLocation.hasMany(Roster, { foreignKey: "officeId" });
+  //Shift
+  OfficeLocation.hasMany(Shift, { foreignKey: "officeId", as: "shifts" });
+  Shift.belongsTo(OfficeLocation, {
+    foreignKey: "officeId",
+    as: "officeLocation",
+  });
 
-Shift.belongsTo(Shift, { foreignKey: "parentShiftId", as: "parentShift" });
-Shift.hasMany(Shift, { foreignKey: "parentShiftId", as: "recurringShifts" });
+  Employee.hasMany(Shift, {
+    foreignKey: "employeeId",
+    as: "shifts",
+    onDelete: "CASCADE",
+  });
+  Shift.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-// ClockIn/Out
-Employee.hasMany(ClockInOut, { foreignKey: "employeeId", as: "clockEvents" });
-ClockInOut.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+  Shift.belongsTo(Shift, { foreignKey: "parentShiftId", as: "parentShift" });
+  Shift.hasMany(Shift, { foreignKey: "parentShiftId", as: "recurringShifts" });
 
-Shift.hasMany(ClockInOut, { foreignKey: "shiftId", as: "clockEvents" });
-ClockInOut.belongsTo(Shift, { foreignKey: "shiftId", as: "shift" });
+  // ClockIn/Out
+  Employee.hasMany(ClockInOut, { foreignKey: "employeeId", as: "clockEvents" });
+  ClockInOut.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-// Employee Availability
-Employee.hasMany(EmployeeAvailability, {
-  foreignKey: "employeeId",
-  as: "availability",
-});
-EmployeeAvailability.belongsTo(Employee, {
-  foreignKey: "employeeId",
-  as: "employee",
-});
+  Shift.hasMany(ClockInOut, { foreignKey: "shiftId", as: "clockEvents" });
+  ClockInOut.belongsTo(Shift, { foreignKey: "shiftId", as: "shift" });
 
-// Break Periods
-Employee.hasMany(BreakPeriod, { foreignKey: "employeeId", as: "breaks" });
-BreakPeriod.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+  // Employee Availability
+  Employee.hasMany(EmployeeAvailability, {
+    foreignKey: "employeeId",
+    as: "availability",
+  });
+  EmployeeAvailability.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employee",
+  });
 
-Shift.hasMany(BreakPeriod, { foreignKey: "shiftId", as: "breaks" });
-BreakPeriod.belongsTo(Shift, { foreignKey: "shiftId", as: "shift" });
+  // Break Periods
+  Employee.hasMany(BreakPeriod, { foreignKey: "employeeId", as: "breaks" });
+  BreakPeriod.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-// Shift Requests
-Employee.hasMany(ShiftRequest, {
-  foreignKey: "employeeId",
-  as: "shiftRequests",
-});
-ShiftRequest.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+  Shift.hasMany(BreakPeriod, { foreignKey: "shiftId", as: "breaks" });
+  BreakPeriod.belongsTo(Shift, { foreignKey: "shiftId", as: "shift" });
 
-Employee.hasMany(ShiftRequest, {
-  foreignKey: "managerId",
-  as: "managedShiftRequests",
-});
-ShiftRequest.belongsTo(Employee, { foreignKey: "managerId", as: "manager" });
+  // Shift Requests
+  Employee.hasMany(ShiftRequest, {
+    foreignKey: "employeeId",
+    as: "shiftRequests",
+  });
+  ShiftRequest.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employee",
+  });
 
-OfficeLocation.hasMany(ShiftRequest, {
-  foreignKey: "locationId",
-  as: "shiftRequests",
-});
-ShiftRequest.belongsTo(OfficeLocation, {
-  foreignKey: "locationId",
-  as: "location",
-});
+  Employee.hasMany(ShiftRequest, {
+    foreignKey: "managerId",
+    as: "managedShiftRequests",
+  });
+  ShiftRequest.belongsTo(Employee, { foreignKey: "managerId", as: "manager" });
 
-// Time Off
-Employee.hasMany(TimeOff, { foreignKey: "employeeId", as: "timeOffRequests" });
-TimeOff.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+  OfficeLocation.hasMany(ShiftRequest, {
+    foreignKey: "locationId",
+    as: "shiftRequests",
+  });
+  ShiftRequest.belongsTo(OfficeLocation, {
+    foreignKey: "locationId",
+    as: "location",
+  });
 
-//RefreshToke
-RefreshToken.belongsTo(Employee, { foreignKey: "employeeId" });
-Employee.hasOne(RefreshToken, {
-  foreignKey: "employeeId",
-  onDelete: "CASCADE",
-});
+  // Time Off
+  Employee.hasMany(TimeOff, {
+    foreignKey: "employeeId",
+    as: "timeOffRequests",
+  });
+  TimeOff.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-// employeeModel.ts
-Employee.hasMany(Document, { foreignKey: "employeeId", onDelete: "CASCADE" });
+  //RefreshToke
+  RefreshToken.belongsTo(Employee, { foreignKey: "employeeId" });
+  Employee.hasOne(RefreshToken, {
+    foreignKey: "employeeId",
+    onDelete: "CASCADE",
+  });
 
-// documentModel.ts
-Document.belongsTo(Employee, { foreignKey: "employeeId", onDelete: "CASCADE" });
-//EmployeeModel.ts
-EmployeeDetails.belongsTo(Employee,{foreignKey:'employeeId', as:'employee'})
+  // employeeModel.ts
+  Employee.hasMany(Document, { foreignKey: "employeeId", onDelete: "CASCADE" });
 
-Employee.hasOne(EmployeeDetails,{foreignKey:'employeeId', as:'employeeDetails'})}
- 
+  // documentModel.ts
+  Document.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    onDelete: "CASCADE",
+  });
+  //EmployeeModel.ts
+  EmployeeDetails.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employee",
+  });
+
+  Employee.hasOne(EmployeeDetails, {
+    foreignKey: "employeeId",
+    as: "employeeDetails",
+  });
+};

@@ -9,6 +9,7 @@ import { Expo } from "expo-server-sdk";
 import JoinedServer from "../models/joinedServerModel";
 import Notification from "../models/Notifications";
 import { where } from "sequelize";
+import JoinedOffice from "../models/joinedOfficeModel";
 
 // helper functions
 const sendPushNotification = async (
@@ -117,6 +118,7 @@ const fetchAllNotifications = async (
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Missing userId.");
     }
 
+    console.log("userId", userId);
     // Fetch all notifications for the user from the database
     const notifications = await Notification.findAll({
       where: {
@@ -124,15 +126,6 @@ const fetchAllNotifications = async (
       },
       order: [["createdAt", "DESC"]], // order by init_time (latest first)
     });
-
-    // If no notifications found, throw an error
-    if (!notifications || notifications.length === 0) {
-      res
-        .status(200)
-        .json(
-          new ApiResponse(StatusCode.OK, notifications, "No notifications")
-        );
-    }
     // Respond with the notifications
     res
       .status(200)
@@ -239,6 +232,7 @@ const sendNotificationToEmployee = async (
     {},
     {},
     {
+      userId: string;
       title: string;
       body: string;
     }
@@ -246,21 +240,14 @@ const sendNotificationToEmployee = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { title, body } = req.body;
+    const { title, body, userId } = req.body;
 
-    if (!title || !body) {
+    if (!title || !body || !userId) {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         {},
-        "Title and body are required"
+        "Title, body, and employeeId are required"
       );
-    }
-
-    const accessToken = getAccessToken(req);
-    const userId = verifyAccessToken(accessToken)?.userId;
-
-    if (!userId) {
-      throw new ApiError(StatusCode.UNAUTHORIZED, {}, "Unauthorized user");
     }
 
     const device = await ExpoDeviceToken.findOne({
@@ -423,6 +410,113 @@ const sendNotificationToServer = async (
   }
 };
 
+// send notification to office
+const sendNotificationToOffice = async (
+  req: Request<
+    {},
+    {},
+    {
+      title: string;
+      body: string;
+      officeId: string;
+    }
+  >,
+  res: Response
+): Promise<void> => {
+  try {
+    const { title, body, officeId } = req.body;
+
+    if (!title || !body || !officeId) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Missing officeId, title, or body"
+      );
+    }
+
+    const currentUserOffice = await JoinedOffice.findOne({
+      where: { officeId: officeId },
+    });
+    if (!currentUserOffice) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Server Id not found.");
+    }
+    // Step 1: Get all employees who joined the server
+    const joined = await JoinedOffice.findAll({
+      where: { officeId },
+    });
+
+    const employeeIds = joined.map((entry) => entry.id);
+
+    if (employeeIds.length === 0) {
+      throw new ApiError(
+        StatusCode.NOT_FOUND,
+        {},
+        "No users found for this Office"
+      );
+    }
+
+    // Step 2: Get their Expo device tokens
+    const deviceTokens = await ExpoDeviceToken.findAll({
+      where: { employeeId: employeeIds },
+    });
+
+    const messages = deviceTokens
+      .filter((token) => Expo.isExpoPushToken(token.expoPushToken))
+      .map((token) => ({
+        to: token.expoPushToken,
+        sound: "default",
+        title,
+        body,
+        data: { officeId },
+      }));
+
+    if (messages.length === 0) {
+      throw new ApiError(
+        StatusCode.NOT_FOUND,
+        {},
+        "No valid Expo tokens found"
+      );
+    }
+
+    // Step 3: Send notifications in chunks
+    const chunks = expo.chunkPushNotifications(messages);
+    const tickets: any[] = [];
+
+    for (const chunk of chunks) {
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        tickets.push(...ticketChunk);
+      } catch (err) {
+        console.error("Chunk sending error:", err);
+      }
+    }
+
+    res
+      .status(StatusCode.OK)
+      .json(
+        new ApiResponse(
+          StatusCode.OK,
+          tickets,
+          "Notification sent to all users in the office"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      console.error("sendNotificationToServer error:", error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong while sending the server notification"
+          )
+        );
+    }
+  }
+};
 // send notification to a certain selected people
 const sendNotificationToSelectedUsers = async (
   req: Request<
@@ -514,4 +608,5 @@ export {
   sendNotificationToSelectedUsers,
   sendNotificationToServer,
   fetchAllNotifications,
+  sendNotificationToOffice,
 };

@@ -6,16 +6,14 @@ import Server from "../serverModel";
 export interface ShiftAttributes {
   id: string;
   employeeId?: string;
-  locationId?: string;
+  officeId?: string;
   startTime: Date;
   endTime: Date;
   status: ShiftStatus;
   notes?: string;
   repeatFrequency?: RepeatFrequency;
-  parentShiftId?: number;
+  // parentShiftId?: number;
   repeatEndDate?: Date;
-  createdAt?: Date;
-  serverId?: string;
 }
 export enum ShiftStatus {
   PENDING = "pending",
@@ -30,19 +28,18 @@ export enum RepeatFrequency {
   FORTNIGHTLY = "fortnightly",
 }
 
-
 export interface ShiftCreationAttributes
   extends Optional<
     ShiftAttributes,
     | "id"
     | "employeeId"
-    | "locationId"
+    | "officeId"
     | "notes"
     | "repeatFrequency"
-    | "parentShiftId"
+    // | "parentShiftId"
     | "repeatEndDate"
-    | "createdAt"
-    | "serverId"
+    // | "createdAt"
+    // | "serverId"
   > {}
 
 export class Shift
@@ -51,16 +48,16 @@ export class Shift
 {
   public id!: string;
   public employeeId?: string;
-  public locationId?: string;
+  public officeId?: string;
   public startTime!: Date;
   public endTime!: Date;
   public status!: ShiftStatus;
   public notes?: string;
   public repeatFrequency?: RepeatFrequency;
-  public parentShiftId?: number;
+  // public parentShiftId?: number;
   public repeatEndDate?: Date;
-  public createdAt?: Date;
-  public serverId?: string;
+  // public createdAt?: Date;
+  // public serverId?: string;
 }
 
 Shift.init(
@@ -76,13 +73,13 @@ Shift.init(
       references: { model: Employee, key: "id" },
       onDelete: "CASCADE",
     },
-    serverId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: { model: Server, key: "id" },
-      onDelete: "CASCADE",
-    },
-    locationId: {
+    // serverId: {
+    //   type: DataTypes.UUID,
+    //   allowNull: false,
+    //   references: { model: Server, key: "id" },
+    //   onDelete: "CASCADE",
+    // },
+    officeId: {
       type: DataTypes.UUID,
       allowNull: true,
       references: { model: OfficeLocation, key: "id" },
@@ -116,26 +113,26 @@ Shift.init(
       allowNull: true,
       defaultValue: "none",
     },
-    parentShiftId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      references: { model: Shift, key: "id" },
-      onDelete: "CASCADE",
-    },
+    // parentShiftId: {
+    //   type: DataTypes.UUID,
+    //   allowNull: true,
+    //   references: { model: Shift, key: "id" },
+    //   onDelete: "CASCADE",
+    // },
     repeatEndDate: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
+    // createdAt: {
+    //   type: DataTypes.DATE,
+    //   defaultValue: DataTypes.NOW,
+    // },
   },
   {
     sequelize,
     modelName: "Shift",
     tableName: "shifts",
     //schema: "workplacedb",
-    timestamps: false,
+    timestamps: true,
   }
 );

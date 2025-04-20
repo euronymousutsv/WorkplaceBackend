@@ -4,6 +4,8 @@ import ApiResponse, { StatusCode } from "../../utils/apiResponse";
 import Channel, { Roles } from "../../models/channelModel";
 import { getAccessToken } from "../../utils/helper";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
+import { OfficeLocation } from "../../models/officeLocation";
+import { Console } from "console";
 
 // Function to create a new channel inside a server
 const createNewChannel = async (
@@ -11,39 +13,51 @@ const createNewChannel = async (
     {},
     {},
     {
-      serverId: string;
+      officeId: string;
       channelName: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { serverId, channelName } = req.body;
+  const { officeId, channelName } = req.body;
 
   try {
-    if (!serverId || !channelName)
+    if (!officeId || !channelName)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         {},
-        "Make sure both Server id and Channel Name is provided."
+        "Make sure both Office id and Channel Name is provided."
       );
 
-    // Todo:: limit the character in the channel name
-
-    const newChannel = Channel.create({
-      name: channelName,
-      serverId: serverId,
+    const searchedOffice = await OfficeLocation.findOne({
+      where: { id: officeId },
     });
 
-    const savedChannel = (await newChannel).save();
-    if (!savedChannel)
-      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to create Server");
+    if (!searchedOffice)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Office Not found");
+
+    console.log(searchedOffice);
+
+    const newChannel = await Channel.create({
+      name: channelName,
+      officeId,
+    });
+
+    console.log("new channel", newChannel);
+
+    if (!newChannel)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "Unable to create Channel"
+      );
 
     res
       .status(201)
       .json(
         new ApiResponse(
           StatusCode.CREATED,
-          (await savedChannel).dataValues,
+          newChannel,
           "New Channel created successfull!"
         )
       );
@@ -65,32 +79,32 @@ const createNewChannel = async (
 };
 
 // function to fetch all the channels current server has.
-const getAllChannelForCurrentServer = async (
+const getAllChannelForCurrentOffice = async (
   req: Request<
     {},
     {},
     {},
     {
-      serverId: string;
+      officeId: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { serverId } = req.query;
+  const { officeId } = req.query;
 
   try {
-    if (!serverId)
+    if (!officeId)
       throw new ApiError(
         StatusCode.BAD_REQUEST,
-        { serverId: "" },
-        "Make sure both Server is provided."
+        { officeId: "" },
+        "Make sure both Office Id is provided."
       );
 
     const accessToken = getAccessToken(req);
     const role = verifyAccessToken(accessToken)?.role;
 
     const allChannel = await Channel.findAll({
-      where: { serverId: serverId },
+      where: { officeId },
     });
 
     const accessibleChannels = allChannel.filter((channel) => {
@@ -374,7 +388,7 @@ const getChannelDetails = async (
 
 export {
   createNewChannel,
-  getAllChannelForCurrentServer,
+  getAllChannelForCurrentOffice,
   deleteChannel,
   addAccessToChannel,
   changeAChannelName,

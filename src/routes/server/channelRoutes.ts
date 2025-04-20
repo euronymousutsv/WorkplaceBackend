@@ -4,7 +4,7 @@ import {
   changeAChannelName,
   createNewChannel,
   deleteChannel,
-  getAllChannelForCurrentServer,
+  getAllChannelForCurrentOffice,
   getChannelDetails,
 } from "../../controllers/server/channelController";
 import { verifyLoginStatus } from "../../middleware/verifyLoginMiddleware";
@@ -12,9 +12,9 @@ import { verifyLoginStatus } from "../../middleware/verifyLoginMiddleware";
 const router = express.Router();
 router.post("/create", verifyLoginStatus, createNewChannel);
 router.get(
-  "/getAllChannelForCurrentServer/",
+  "/getAllChannelForCurrentOffice/",
   verifyLoginStatus,
-  getAllChannelForCurrentServer
+  getAllChannelForCurrentOffice
 );
 router.delete("/delete", verifyLoginStatus, deleteChannel);
 router.post("/addAccessToChannel", verifyLoginStatus, addAccessToChannel);

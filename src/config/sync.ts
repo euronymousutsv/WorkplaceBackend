@@ -11,6 +11,7 @@ import Server from "../models/serverModel";
 import Channel from "../models/channelModel";
 import JoinedServer from "../models/joinedServerModel";
 import { RefreshToken } from "../models/refreshModel";
+import JoinedOffice from "../models/joinedOfficeModel";
 import Document from "../models/documentModel";
 import { BreakPeriod } from "../models/roster-clockinout-shifts/BreakPeriodModel";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
@@ -32,14 +33,14 @@ const syncDatabase = async () => {
       "🛠 Dropping foreign key constraints to prevent dependency errors..."
     );
     //await sequelize.query("DROP SCHEMA IF EXISTS workplacedb CASCADE;");
-  // await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
+    // await sequelize.query("DROP SCHEMA IF EXISTS production CASCADE;"); // ✅ Drops all tables and foreign key constraints
 
     console.log("🛠 Recreating schema...");
     //sequelize.query("CREATE SCHEMA production;"); // ✅ Ensures schema is created before tables
 
     console.log("🔄 Recreating tables...");
     await Employee.sync({ alter: true });
-    await EmployeeDetails.sync({alter:true});
+    await EmployeeDetails.sync({ alter: true });
     await RefreshToken.sync({
       alter: true,
     });
@@ -51,6 +52,8 @@ const syncDatabase = async () => {
     await Server.sync({ alter: true });
     await Channel.sync({ alter: true });
     await JoinedServer.sync({ alter: true });
+    await JoinedOffice.sync({ alter: true });
+
     await Document.sync({ alter: true });
     await BreakPeriod.sync({ alter: true });
     await ClockInOut.sync({ alter: true });

@@ -9,7 +9,6 @@ interface OfficeLocationAttributes {
   serverId?: string;
   latitude: number;
   longitude: number;
-  address: string;
   radius: number;
   createdAt?: Date;
 }
@@ -24,7 +23,6 @@ class OfficeLocation
 {
   public id!: string;
   public name!: string;
-  public address!: string;
   public serverId!: string;
   public latitude!: number;
   public longitude!: number;
@@ -52,10 +50,7 @@ OfficeLocation.init(
         key: "id",
       },
     },
-    address: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
+
     latitude: {
       type: DataTypes.DECIMAL(10, 8),
       allowNull: false,

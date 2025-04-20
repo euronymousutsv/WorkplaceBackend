@@ -3,7 +3,7 @@ import syncDatabase from "./config/sync";
 const cron = require("node-cron");
 require("dotenv").config();
 import { checkExpiringDocuments } from "./utils/expiryMailer";
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import sequelize from "./config/db";
@@ -16,11 +16,17 @@ import { app, server } from "./config/socket";
 import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
 import notificationRouter from "./routes/notificationRoutes";
+import officeRoutes from "./routes/officeRoutes";
 
 import businessRoutes from "./routes/businessLogicRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import systemSettingRoutes from "./routes/settingRoutes";
+import ApiError from "./utils/apiError";
+import { StatusCode } from "./utils/apiResponse";
+import scheduleRoutes from "./routes/server/scheduleRoutes";
+import fileRouter from "./routes/file/fileRoutes";
+
 // Middleware
 app.use(express.json());
 app.use(
@@ -28,6 +34,7 @@ app.use(
     origin: "*",
   })
 );
+app.options("*", cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -46,8 +53,34 @@ app.use("/api/v1/server", serverRouter);
 app.use("/api/v1/channel", channelRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/notify", notificationRouter);
+app.use("/api/v1/office", officeRoutes);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
+app.use("/api/schedule", scheduleRoutes);
+app.use("/api/v1/file", fileRouter);
+
+// Global Error Handler - Must be after all routes but before server start
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  console.error(err); // Log the error for debugging
+
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json(err);
+    return;
+  }
+
+  // Handle other types of errors
+  res
+    .status(StatusCode.INTERNAL_SERVER_ERROR)
+    .json(
+      new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        err.message || "Internal Server Error"
+      )
+    );
+};
+
+app.use(errorHandler);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

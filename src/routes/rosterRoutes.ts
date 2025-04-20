@@ -8,7 +8,7 @@ import {
   getShiftsForLoggedInUser,
   getShiftsForOffice,
   getAllOffices,
-  createAOffice,
+  createOffice,
 } from "../controllers/rosterController";
 import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 
@@ -19,8 +19,8 @@ router.get("/", getShifts);
 router.delete("/deleteShift", verifyLoginStatus, deleteShift);
 router.post("/autoShift", verifyLoginStatus, autoAssignShifts);
 router.get("/getShiftsForOffice", verifyLoginStatus, getShiftsForOffice);
-router.get("/getAllOffices", verifyLoginStatus, getAllOffices);
-router.post("/createAOffice", verifyLoginStatus, createAOffice);
+
+// working
 router.get(
   "/getShiftsForLoggedInUser",
   verifyLoginStatus,
