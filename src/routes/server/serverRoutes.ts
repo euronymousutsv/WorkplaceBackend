@@ -22,11 +22,16 @@ import {
   checkPermission,
   Role,
 } from "../../middleware/accessCheckerMiddleware";
+import {
+  getEmployeeById,
+  updateEmployeeInfo,
+} from "../../models/employeeController";
 
 const router = express.Router();
 
 // Server Routes
 router.post("/register", verifyLoginStatus, registerServer);
+
 router.post("/search", searchServer);
 router.get("/getLoggedInUserServer/", verifyLoginStatus, getLoggedInUserServer);
 router.post("/joinServer", verifyLoginStatus, joinServer);
@@ -44,6 +49,17 @@ router.delete(
 router.delete("/kickEmployee", verifyLoginStatus, kickEmployee);
 router.delete("/leaveServer", verifyLoginStatus, leaveServer);
 router.get("/fetchAllUsers", verifyLoginStatus, getAllUsersInServer);
+
+// employee details
+router.get("/getEmployeeById/:id", verifyLoginStatus, getEmployeeById);
+
+// updates additional infos
+router.put(
+  "/updateEmployeeInfo",
+  verifyLoginStatus,
+  checkPermission(Role.MANAGER),
+  updateEmployeeInfo
+);
 router.put(
   "/updateRole",
   verifyLoginStatus,

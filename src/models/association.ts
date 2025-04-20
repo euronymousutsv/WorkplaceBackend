@@ -22,6 +22,14 @@ import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
 // Define associations AFTER models are imported
 export const associateModels = () => {
+  Employee.hasOne(EmployeeDetails, {
+    foreignKey: "employeeId",
+    as: "detailsEmployee",
+  });
+  EmployeeDetails.belongsTo(Employee, {
+    foreignKey: "employeeId",
+    as: "employeeDetails",
+  });
   Employee.hasMany(Roster, { foreignKey: "employeeId", onDelete: "CASCADE" });
   Employee.hasMany(Payroll, { foreignKey: "employeeId", onDelete: "CASCADE" });
   Employee.hasMany(AttendanceEvent, {
@@ -37,7 +45,17 @@ export const associateModels = () => {
   // joined server
   Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
   JoinedServer.belongsTo(Employee, { foreignKey: "id" });
+  JoinedOffice.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+  Employee.hasOne(JoinedOffice, {
+    foreignKey: "id",
+    onDelete: "CASCADE",
+  });
 
+  JoinedOffice.belongsTo(Employee, {
+    foreignKey: "id", // `id` in JoinedOffice refers to Employee's id
+    targetKey: "id",
+    as: "employee",
+  });
   // notificaiton
   Notification.belongsTo(Employee, {
     foreignKey: "employeeId",
@@ -52,8 +70,6 @@ export const associateModels = () => {
   JoinedServer.belongsTo(Server, { foreignKey: "serverId" });
   Server.hasMany(OfficeLocation, { foreignKey: "serverId" });
   OfficeLocation.belongsTo(Server, { foreignKey: "serverId" });
-
-  JoinedOffice.belongsTo(OfficeLocation, { foreignKey: "officeId" });
 
   // Channel.belongsTo(Server, { foreignKey: "serverId" });
   Channel.belongsTo(OfficeLocation, { foreignKey: "officeId" });

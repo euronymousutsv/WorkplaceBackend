@@ -8,22 +8,21 @@ interface EmployeeDetailsAttributes {
   username: string;
   baseRate: string;
   contractHours?: string;
-  employeeType: "full-time" | "part-time" | "casual";
+  employeeType: EmploymentType;
   department: string;
   position: string;
- // managerId?: string;
   hireDate: Date;
-  //createdAt?: Date;
+}
+
+export enum EmploymentType {
+  FULL_TIME = "full-time",
+  PART_TIME = "part-time",
+  CASUAL = "casual",
 }
 
 // Optional fields when creating a new Employee
 interface EmployeeDetailsCreationAttributes
-  extends Optional<
-    EmployeeDetailsAttributes,
-    | "id"
-    | "contractHours"
-  
-  > {}
+  extends Optional<EmployeeDetailsAttributes, "id" | "contractHours"> {}
 
 class EmployeeDetails
   extends Model<EmployeeDetailsAttributes, EmployeeDetailsCreationAttributes>
@@ -34,27 +33,13 @@ class EmployeeDetails
   public username!: string;
   public baseRate!: string;
   public contractHours?: string;
-  public employeeType!: "full-time" | "part-time" | "casual";
+  public employeeType!: EmploymentType;
   public department!: string;
   public position!: string;
   //public managerId?: string;
   public hireDate!: Date;
   public createdAt?: Date;
 }
-// const checkEnumExists = async () => {
-// const [results] = await sequelize.query(
-//   `SELECT 1 FROM pg_type WHERE typname = 'enum_employee_role';`
-// );
-// return results.length > 0;
-// };
-// async () => {
-// const enumExists = await checkEnumExists();
-// if (!enumExists) {
-//   await sequelize.query(
-//     "CREATE TYPE enum_employee_role AS ENUM ('admin','employee','manager');"
-//   );
-// }
-// };
 
 const checkEnumExists = async (enumName: string, schema: string = "public") => {
   const results = await sequelize.query(
@@ -83,7 +68,6 @@ const checkEnumExists = async (enumName: string, schema: string = "public") => {
       name: "employee_type",
       values: ["full-time", "part-time", "casual"],
     },
-   
   ];
 
   for (const enumDef of enumsToCreate) {
@@ -108,13 +92,11 @@ EmployeeDetails.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    employeeId:{
-      type:DataTypes.UUID,
-    allowNull: false,
-    references: {model: Employee, key:"id"},
-    onDelete:"CASCADE"
-
-
+    employeeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Employee, key: "id" },
+      onDelete: "CASCADE",
     },
     username: {
       type: DataTypes.STRING(100),
@@ -136,7 +118,7 @@ EmployeeDetails.init(
     },
     department: { type: DataTypes.STRING, allowNull: false },
     position: { type: DataTypes.STRING(100), allowNull: false },
-   
+
     hireDate: { type: DataTypes.DATE, allowNull: false },
     //createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
@@ -149,8 +131,6 @@ EmployeeDetails.init(
     paranoid: true,
   }
 );
-
-
 
 // Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
 // Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
