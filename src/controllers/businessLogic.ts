@@ -10,12 +10,18 @@ import {
   format,
 } from "date-fns";
 import { Employee } from "../models/employeeModel";
-import { Shift, ShiftStatus } from "../models/roster-clockinout-shifts/shiftsModel";
+import {
+  Shift,
+  ShiftStatus,
+} from "../models/roster-clockinout-shifts/shiftsModel";
 import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { SystemSetting } from "../models/systemSetting";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { EmployeeDetails } from "../models/employeeDetails";
-import { getAllEmployeeProfiles, getEmployeeProfileById } from "../types/EmployeeProfileViewModel";
+import {
+  getAllEmployeeProfiles,
+  getEmployeeProfileById,
+} from "../types/EmployeeProfileViewModel";
 
 const calculateDistance = (
   lat1: number,
@@ -105,8 +111,7 @@ export const getWeeklyRoster = async (
       : new Date();
     const weekStart = startOfWeek(inputDate);
     const weekEnd = addDays(weekStart, 6);
-    const employees =await  getAllEmployeeProfiles();
-  
+    const employees = await getAllEmployeeProfiles();
 
     const days = Array.from({ length: 7 }, (_, i) => {
       const date = addDays(weekStart, i);
@@ -136,7 +141,7 @@ export const getWeeklyRoster = async (
               dayIndex: i,
               start: format(shift.startTime, "HH:mm"),
               end: format(shift.endTime, "HH:mm"),
-              location: shift.locationId ?? "Unknown",
+              location: shift.officeId ?? "Unknown",
               isOff: false,
             };
           } else {
@@ -425,7 +430,7 @@ export const assignShifts = async (
 
       await Shift.create({
         employeeId: emp.id,
-        locationId: location.id,
+        officeId: location.id,
         startTime,
         endTime,
         status: ShiftStatus.ACTIVE,

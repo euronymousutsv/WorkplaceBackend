@@ -24,6 +24,7 @@ import locationRoutes from "./routes/locationRoutes";
 import systemSettingRoutes from "./routes/settingRoutes";
 import ApiError from "./utils/apiError";
 import { StatusCode } from "./utils/apiResponse";
+import scheduleRoutes from "./routes/server/scheduleRoutes";
 
 // Middleware
 app.use(express.json());
@@ -54,6 +55,7 @@ app.use("/api/v1/notify", notificationRouter);
 app.use("/api/v1/office", officeRoutes);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 // Global Error Handler - Must be after all routes but before server start
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -65,13 +67,15 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   }
 
   // Handle other types of errors
-  res.status(StatusCode.INTERNAL_SERVER_ERROR).json(
-    new ApiError(
-      StatusCode.INTERNAL_SERVER_ERROR,
-      {},
-      err.message || "Internal Server Error"
-    )
-  );
+  res
+    .status(StatusCode.INTERNAL_SERVER_ERROR)
+    .json(
+      new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        err.message || "Internal Server Error"
+      )
+    );
 };
 
 app.use(errorHandler);
