@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import { saveAndBroadcastMessage } from "../controllers/server/chatController";
+import { uploadBase64ToS3 } from "../controllers/files/fileController";
 
 const app = express();
 const server = http.createServer(app);
@@ -42,8 +43,14 @@ io.on("connection", (socket) => {
   });
 
   // Sending a message to a channel
-  socket.on("send_message", (data: MessageData) => {
-    console.log(data);
+  socket.on("send_message", async (data: MessageData) => {
+    if (data.isImage) {
+      data.message = data.message.replace("data:image/png;base64,", "");
+    }
+
+    const uri = await uploadBase64ToS3(data.message, "workhive-chats");
+    data.message = uri;
+
     saveAndBroadcastMessage(data, socket);
     // io.to(data.channel).emit("receive_message", data);
   });
