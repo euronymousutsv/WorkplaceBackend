@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
+import {
+  RepeatFrequency,
+  Shift,
+  ShiftStatus,
+} from "../models/roster-clockinout-shifts/shiftsModel";
 import ApiError from "../utils/apiError";
 import ApiResponse, { StatusCode } from "../utils/apiResponse";
 import { Op } from "sequelize";
@@ -78,12 +82,12 @@ const createShift = async (
 
 // get shift by office
 const getShiftsByOffice = async (
-  req: Request,
+  req: Request<{}, {}, {}, { officeId: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { officeId } = req.params;
+    const { officeId } = req.query;
 
     if (!officeId) {
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Office ID is required");
@@ -123,11 +127,11 @@ const getShiftsByOffice = async (
 
 // get shift by employee
 const getShiftsByEmployee = async (
-  req: Request,
+  req: Request<{}, {}, {}, { employeeId: string }>,
   res: Response
 ): Promise<void> => {
   try {
-    const { employeeId } = req.params;
+    const { employeeId } = req.query;
 
     if (!employeeId) {
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Employee ID is required");
@@ -169,13 +173,12 @@ const getShiftsByEmployee = async (
 
 // get employee shifts by date
 const getEmployeeShiftsByDate = async (
-  req: Request,
+  req: Request<{}, {}, {}, { employeeId: string; date: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { employeeId } = req.params;
-    const { date } = req.query;
+    const { employeeId, date } = req.query;
 
     if (!employeeId) {
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Employee ID is required");
@@ -278,12 +281,26 @@ const getShiftsByDateRangeForOffice = async (
 // update shift within an office
 // update shift by shiftId
 const updateShift = async (
-  req: Request,
+  req: Request<
+    {},
+    {},
+    {
+      employeeId?: string;
+      officeId?: string;
+      startTime?: string;
+      endTime?: string;
+      status?: ShiftStatus;
+      notes?: string;
+      repeatFrequency?: RepeatFrequency;
+      repeatEndDate?: string;
+    },
+    { shiftId: string }
+  >,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { shiftId } = req.params;
+    const { shiftId } = req.query;
     const {
       employeeId,
       officeId,
@@ -343,14 +360,17 @@ const updateShift = async (
 // get shift with details
 // get shift by shiftId
 const getShiftWithDetails = async (
-  req: Request,
+  req: Request<{}, {}, {}, { id: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.query;
     const shift = await Shift.findByPk(id, {
-      include: [Employee, OfficeLocation],
+      include: [
+        { model: Employee, as: "employee" },
+        { model: OfficeLocation, as: "officeLocation" },
+      ],
     });
     if (!shift) {
       throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift not found");
@@ -381,17 +401,20 @@ const getShiftWithDetails = async (
 
 // get all shifts with details within an office
 const getAllShiftsWithDetailsWithinAnOffice = async (
-  _req: Request,
+  _req: Request<{}, {}, {}, { officeId: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { officeId } = _req.params;
+    const { officeId } = _req.query;
     const shifts = await Shift.findAll({
       where: {
         officeId,
       },
-      include: [Employee, OfficeLocation],
+      include: [
+        { model: Employee, as: "employee" },
+        { model: OfficeLocation, as: "officeLocation" },
+      ],
     });
     res
       .status(StatusCode.OK)
