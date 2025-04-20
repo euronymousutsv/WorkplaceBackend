@@ -2,7 +2,6 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import { saveAndBroadcastMessage } from "../controllers/server/chatController";
-import { uploadBase64ToS3 } from "../controllers/files/fileController";
 
 const app = express();
 const server = http.createServer(app);
@@ -11,7 +10,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "https://workhive.space/",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   },
 });
 
@@ -43,14 +43,8 @@ io.on("connection", (socket) => {
   });
 
   // Sending a message to a channel
-  socket.on("send_message", async (data: MessageData) => {
-    if (data.isImage) {
-      data.message = data.message.replace("data:image/png;base64,", "");
-    }
-
-    const uri = await uploadBase64ToS3(data.message, "workhive-chats");
-    data.message = uri;
-
+  socket.on("send_message", (data: MessageData) => {
+    console.log("Message received: ", data);
     saveAndBroadcastMessage(data, socket);
     // io.to(data.channel).emit("receive_message", data);
   });
