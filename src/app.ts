@@ -3,7 +3,7 @@ import syncDatabase from "./config/sync";
 const cron = require("node-cron");
 require("dotenv").config();
 import { checkExpiringDocuments } from "./utils/expiryMailer";
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import sequelize from "./config/db";
@@ -22,6 +22,9 @@ import businessRoutes from "./routes/businessLogicRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import systemSettingRoutes from "./routes/settingRoutes";
+import ApiError from "./utils/apiError";
+import { StatusCode } from "./utils/apiResponse";
+
 // Middleware
 app.use(express.json());
 app.use(
@@ -51,6 +54,27 @@ app.use("/api/v1/notify", notificationRouter);
 app.use("/api/v1/office", officeRoutes);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
+
+// Global Error Handler - Must be after all routes but before server start
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  console.error(err); // Log the error for debugging
+
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json(err);
+    return;
+  }
+
+  // Handle other types of errors
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).json(
+    new ApiError(
+      StatusCode.INTERNAL_SERVER_ERROR,
+      {},
+      err.message || "Internal Server Error"
+    )
+  );
+};
+
+app.use(errorHandler);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

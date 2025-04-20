@@ -22,9 +22,9 @@ export const getAllShifts = async (
 ) => {
   try {
     const shifts = await Shift.findAll();
-    res.status(200).json(shifts);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shifts, "Shifts retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shifts"));
   }
 };
 
@@ -36,12 +36,15 @@ export const getShift = async (
   try {
     const shift = await Shift.findByPk(req.params.id);
     if (!shift) {
-      res.status(404).json({ message: "Shift not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift not found");
     }
-    res.status(200).json(shift);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shift, "Shift retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shift"));
+    }
   }
 };
 
@@ -55,11 +58,9 @@ export const getShiftsByEmployeeId = async (
     const shifts = await Shift.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.status(200).json(shifts);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shifts, "Shifts retrieved successfully"));
   } catch (error) {
-    // console.error("getShiftsByEmployeeId error:", error);
-    // res.status(500).json({ error: "Internal server error" });
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shifts"));
   }
 };
 //Get /shift by serverid
@@ -72,16 +73,16 @@ export const getShiftByServer = async (
     const shifts = await Shift.findAll({
       where: { serverId: req.params.id },
     });
-    res.status(200).json(shifts);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shifts, "Shifts retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shifts"));
   }
 };
 // GET /shifts/range?start=...&end=...
-export const getShiftsByDateRange = async (req: Request, res: Response) => {
+export const getShiftsByDateRange = async (req: Request, res: Response, next: NextFunction) => {
   const { start, end } = req.query;
   if (!start || !end) {
-    res.status(400).json({ error: "Missing date range" });
+    next(new ApiError(StatusCode.BAD_REQUEST, {}, "Missing date range parameters"));
     return;
   }
   try {
@@ -91,17 +92,17 @@ export const getShiftsByDateRange = async (req: Request, res: Response) => {
         endTime: { [Op.lte]: new Date(end as string) },
       },
     });
-    res.status(200).json(shifts);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shifts, "Shifts retrieved successfully"));
   } catch (error) {
-    console.error("getShiftsByDateRange error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shifts"));
   }
 };
 
 // POST /shifts
 export const createShift = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const {
@@ -116,7 +117,20 @@ export const createShift = async (
       parentShiftId,
       repeatEndDate,
     } = req.body;
-    if (!employeeId) throw new ApiError(StatusCode.BAD_REQUEST,{employeeId: null},"Missing EmployeeId")
+
+    // Validate required fields
+    if (!employeeId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Employee ID is required");
+    }
+    if (!serverId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Server ID is required");
+    }
+    if (!startTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Start time is required");
+    }
+    if (!endTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "End time is required");
+    }
 
     const newShift = await Shift.create({
       employeeId,
@@ -131,20 +145,12 @@ export const createShift = async (
       repeatEndDate: repeatEndDate ? new Date(repeatEndDate) : undefined,
     });
 
-    res.status(201).json(new ApiResponse (StatusCode.CREATED, newShift, "Shift Created"));
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, newShift, "Shift created successfully"));
   } catch (error) {
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json(error);
+      next(error);
     } else {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json(
-          new ApiError(
-            StatusCode.INTERNAL_SERVER_ERROR,
-            {},
-            "Something went wrong."
-          )
-        );
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create shift"));
     }
   }
 };
@@ -157,17 +163,20 @@ export const updateShift = async (
   next: NextFunction
 ) => {
   try {
-    const updated = await Shift.update(req.body, {
+    const [count, updated] = await Shift.update(req.body, {
       where: { id: req.params.id },
       returning: true,
     });
-    if (updated[0] === 0) {
-      res.status(404).json({ message: "Shift not found" });
-      return;
+    if (count === 0) {
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift not found");
     }
-    res.status(200).json(updated[1][0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, updated[0], "Shift updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update shift"));
+    }
   }
 };
 
@@ -182,14 +191,15 @@ export const getShiftWithDetails = async (
       include: [Employee, OfficeLocation],
     });
     if (!shift) {
-      res.status(404).json({ error: "Shift not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift not found");
     }
-    res.status(200).json(shift);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shift, "Shift details retrieved successfully"));
   } catch (error) {
-    // console.error("getShiftWithDetails error:", error);
-    // res.status(500).json({ error: "Internal server error" });
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shift details"));
+    }
   }
 };
 
@@ -203,16 +213,14 @@ export const getAllShiftsWithDetails = async (
     const shifts = await Shift.findAll({
       include: [Employee, OfficeLocation],
     });
-    res.status(200).json(shifts);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, shifts, "Shifts retrieved successfully"));
   } catch (error) {
-    // console.error("getAllShiftsWithDetails error:", error);
-    // res.status(500).json({ error: "Internal server error" });
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shifts"));
   }
 };
 
 // POST /shifts/repeat
-export const createRepeatingShifts = async (req: Request, res: Response) => {
+export const createRepeatingShifts = async (req: Request, res: Response, next: NextFunction) => {
   const { repeatFrequency, repeatEndDate, ...shiftData } = req.body;
   const createdShifts = [];
 
@@ -226,7 +234,7 @@ export const createRepeatingShifts = async (req: Request, res: Response) => {
 
     if (!intervalMs) {
       const single = await Shift.create(shiftData);
-      res.status(201).json([single]);
+      res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, [single], "Shift created successfully"));
       return;
     }
 
@@ -247,64 +255,66 @@ export const createRepeatingShifts = async (req: Request, res: Response) => {
       currentEnd = new Date(currentEnd.getTime() + intervalMs);
     }
 
-    res.status(201).json(createdShifts);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, createdShifts, "Repeating shifts created successfully"));
   } catch (error) {
-    console.error("createRepeatingShifts error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create repeating shifts"));
   }
 };
 
 /****** Employeee Availibility Controllers **************************************************************************************/
 
 // GET /availability/:id
-export const getEmployeeAvailability = async (req: Request, res: Response) => {
+export const getEmployeeAvailability = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const availability = await EmployeeAvailability.findByPk(req.params.id);
     if (!availability) {
-      res.status(404).json({ error: "Availability not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Availability not found");
     }
-    res.status(200).json(availability);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, availability, "Availability retrieved successfully"));
   } catch (error) {
-    console.error("getEmployeeAvailability error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve availability"));
+    }
   }
 };
 
 // GET /availability/employee/:employeeId
 export const getAvailabilityByEmployeeId = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const availability = await EmployeeAvailability.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.status(200).json(availability);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, availability, "Availability retrieved successfully"));
   } catch (error) {
-    console.error("getAvailabilityByEmployeeId error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve availability"));
   }
 };
 
 // POST /availability
 export const createEmployeeAvailability = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const newAvailability = await EmployeeAvailability.create(req.body);
-    res.status(201).json(newAvailability);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, newAvailability, "Availability created successfully"));
   } catch (error) {
-    console.error("createEmployeeAvailability error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create availability"));
   }
 };
 
 // PUT /availability/:id
 export const updateEmployeeAvailability = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const [count, updated] = await EmployeeAvailability.update(req.body, {
@@ -313,21 +323,24 @@ export const updateEmployeeAvailability = async (
     });
 
     if (count === 0) {
-      res.status(404).json({ error: "Availability not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Availability not found");
     }
 
-    res.status(200).json(updated[0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, updated[0], "Availability updated successfully"));
   } catch (error) {
-    console.error("updateEmployeeAvailability error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update availability"));
+    }
   }
 };
 
 // DELETE /availability/:id
 export const deleteEmployeeAvailability = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const deleted = await EmployeeAvailability.destroy({
@@ -335,21 +348,24 @@ export const deleteEmployeeAvailability = async (
     });
 
     if (!deleted) {
-      res.status(404).json({ error: "Availability not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Availability not found");
     }
 
-    res.status(200).json({ message: "Availability deleted successfully" });
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, {}, "Availability deleted successfully"));
   } catch (error) {
-    console.error("deleteEmployeeAvailability error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to delete availability"));
+    }
   }
 };
 
 // GET /availability/employee/:employeeId/details
 export const getEmployeeWithAvailability = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const employee = await Employee.findByPk(req.params.employeeId, {
@@ -357,14 +373,16 @@ export const getEmployeeWithAvailability = async (
     });
 
     if (!employee) {
-      res.status(404).json({ error: "Employee not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Employee not found");
     }
 
-    res.status(200).json(employee);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, employee, "Employee with availability retrieved successfully"));
   } catch (error) {
-    console.error("getEmployeeWithAvailability error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve employee with availability"));
+    }
   }
 };
 
@@ -377,13 +395,15 @@ export const getBreakPeriod = async (
   try {
     const record = await BreakPeriod.findByPk(req.params.id);
     if (!record) {
-      res.status(404).json({ message: "Break period not found" });
-
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Break period not found");
     }
-    res.json(record);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, record, "Break period retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve break period"));
+    }
   }
 };
 
@@ -396,9 +416,9 @@ export const getBreakPeriodsByShiftId = async (
     const records = await BreakPeriod.findAll({
       where: { shiftId: req.params.shiftId },
     });
-    res.json(records);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Break periods retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve break periods"));
   }
 };
 
@@ -411,26 +431,51 @@ export const getBreakPeriodsByEmployeeId = async (
     const records = await BreakPeriod.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.json(records);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Break periods retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve break periods"));
   }
 };
-
+//Create Break Period
 export const createBreakPeriod = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    console.log("Incoming Body", req.body);
+    const {
+      employeeId,
+      shiftId,
+      startTime,
+      endTime,
+      breakType,
+      notes,
+    } = req.body;
+
+    // Validate required fields
+    if (!employeeId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Employee ID is required");
+    }
+    if (!shiftId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Shift ID is required");
+    }
+    if (!startTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Start time is required");
+    }
+    if (!endTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "End time is required");
+    }
+    if (!breakType) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Break type is required");
+    }
+
     const record = await BreakPeriod.create({
       ...req.body,
       createdAt: new Date(),
     });
-    res.status(201).json(record);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, record, "Break period created successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create break period"));
   }
 };
 
@@ -445,12 +490,15 @@ export const updateBreakPeriod = async (
       returning: true,
     });
     if (count === 0) {
-      res.status(404).json({ message: "Break period not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Break period not found");
     }
-    res.json(rows[0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rows[0], "Break period updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update break period"));
+    }
   }
 };
 
@@ -463,12 +511,15 @@ export const getClockInOut = async (
   try {
     const clock = await ClockInOut.findByPk(req.params.id);
     if (!clock) {
-      res.status(404).json({ message: "Record not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Clock in/out record not found");
     }
-    res.json(clock);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, clock, "Clock in/out record retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve clock in/out record"));
+    }
   }
 };
 
@@ -481,9 +532,9 @@ export const getClockInOutByEmployeeId = async (
     const records = await ClockInOut.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.json(records);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Clock in/out records retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve clock in/out records"));
   }
 };
 
@@ -497,9 +548,9 @@ export const createClockInOut = async (
       ...req.body,
       timestamp: new Date(),
     });
-    res.status(201).json(record);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, record, "Clock in/out record created successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create clock in/out record"));
   }
 };
 
@@ -514,9 +565,9 @@ export const getLatestClockByEmployeeId = async (
       order: [["timestamp", "DESC"]],
       limit: 1,
     });
-    res.json(records[0] || null);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records[0] || null, "Latest clock in/out record retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve latest clock in/out record"));
   }
 };
 
@@ -529,12 +580,15 @@ export const getPenaltyRate = async (
   try {
     const rate = await PenaltyRate.findByPk(req.params.id);
     if (!rate) {
-      res.status(404).json({ message: "Penalty rate not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Penalty rate not found");
     }
-    res.json(rate);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rate, "Penalty rate retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve penalty rate"));
+    }
   }
 };
 
@@ -545,9 +599,9 @@ export const getAllPenaltyRates = async (
 ) => {
   try {
     const rates = await PenaltyRate.findAll();
-    res.json(rates);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rates, "Penalty rates retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve penalty rates"));
   }
 };
 
@@ -559,10 +613,7 @@ export const createPenaltyRate = async (
   try {
     const { name, multiplier, description } = req.body;
     if (!name || multiplier == null) {
-      res
-        .status(400)
-        .json({ message: "Both 'name' and 'multiplier' are required." });
-      return;
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Both 'name' and 'multiplier' are required");
     }
     const rate = await PenaltyRate.create({
       name,
@@ -570,9 +621,13 @@ export const createPenaltyRate = async (
       description,
       createdAt: new Date(),
     });
-    res.status(201).json(rate);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, rate, "Penalty rate created successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create penalty rate"));
+    }
   }
 };
 
@@ -583,18 +638,20 @@ export const updatePenaltyRate = async (
 ) => {
   try {
     const penaltyId = req.params.id;
-    console.log("penaltyID", penaltyId);
     const [count, rows] = await PenaltyRate.update(req.body, {
       where: { id: penaltyId },
       returning: true,
     });
     if (count === 0) {
-      res.status(404).json({ message: "Penalty rate not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Penalty rate not found");
     }
-    res.json(rows[0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rows[0], "Penalty rate updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update penalty rate"));
+    }
   }
 };
 
@@ -607,12 +664,15 @@ export const getTimeOff = async (
   try {
     const timeOff = await TimeOff.findByPk(req.params.id);
     if (!timeOff) {
-      res.status(404).json({ message: "Time off not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Time off record not found");
     }
-    res.json(timeOff);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, timeOff, "Time off record retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve time off record"));
+    }
   }
 };
 
@@ -625,9 +685,9 @@ export const getTimeOffByEmployeeId = async (
     const records = await TimeOff.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.json(records);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Time off records retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve time off records"));
   }
 };
 
@@ -638,9 +698,9 @@ export const createTimeOff = async (
 ) => {
   try {
     const record = await TimeOff.create({ ...req.body, createdAt: new Date() });
-    res.status(201).json(record);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, record, "Time off record created successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create time off record"));
   }
 };
 
@@ -655,12 +715,15 @@ export const updateTimeOff = async (
       returning: true,
     });
     if (count === 0) {
-      res.status(404).json({ message: "Time off not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Time off record not found");
     }
-    res.json(rows[0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rows[0], "Time off record updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update time off record"));
+    }
   }
 };
 
@@ -673,12 +736,15 @@ export const getShiftRequest = async (
   try {
     const request = await ShiftRequest.findByPk(req.params.id);
     if (!request) {
-      res.status(404).json({ message: "Shift request not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift request not found");
     }
-    res.json(request);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, request, "Shift request retrieved successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shift request"));
+    }
   }
 };
 
@@ -691,9 +757,9 @@ export const getShiftRequestsByEmployeeId = async (
     const records = await ShiftRequest.findAll({
       where: { employeeId: req.params.employeeId },
     });
-    res.json(records);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Shift requests retrieved successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve shift requests"));
   }
 };
 
@@ -706,10 +772,9 @@ export const getPendingShiftRequests = async (
     const records = await ShiftRequest.findAll({
       where: { status: "pending" },
     });
-    res.json(records);
-  } catch (error: any) {
-    console.error("getPendingShiftRequests error:", error.message || error);
-    res.status(500).json({ error: error.message || "Internal server error" });
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, records, "Pending shift requests retrieved successfully"));
+  } catch (error) {
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to retrieve pending shift requests"));
   }
 };
 
@@ -719,13 +784,40 @@ export const createShiftRequest = async (
   next: NextFunction
 ) => {
   try {
+    const {
+      employeeId,
+      requestDate,
+      startTime,
+      endTime,
+      locationId,
+      status = "pending",
+      notes,
+      managerId,
+      responseNotes,
+      responseDate,
+    } = req.body;
+
+    // Validate required fields
+    if (!employeeId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Employee ID is required");
+    }
+    if (!requestDate) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Request date is required");
+    }
+    if (!startTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Start time is required");
+    }
+    if (!endTime) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "End time is required");
+    }
+
     const record = await ShiftRequest.create({
       ...req.body,
       createdAt: new Date(),
     });
-    res.status(201).json(record);
+    res.status(StatusCode.CREATED).json(new ApiResponse(StatusCode.CREATED, record, "Shift request created successfully"));
   } catch (error) {
-    next(error);
+    next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to create shift request"));
   }
 };
 
@@ -740,11 +832,14 @@ export const updateShiftRequest = async (
       returning: true,
     });
     if (count === 0) {
-      res.status(404).json({ message: "Shift request not found" });
-      return;
+      throw new ApiError(StatusCode.NOT_FOUND, {}, "Shift request not found");
     }
-    res.json(rows[0]);
+    res.status(StatusCode.OK).json(new ApiResponse(StatusCode.OK, rows[0], "Shift request updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof ApiError) {
+      next(error);
+    } else {
+      next(new ApiError(StatusCode.INTERNAL_SERVER_ERROR, {}, "Failed to update shift request"));
+    }
   }
 };
