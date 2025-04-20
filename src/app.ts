@@ -25,6 +25,7 @@ import systemSettingRoutes from "./routes/settingRoutes";
 import ApiError from "./utils/apiError";
 import { StatusCode } from "./utils/apiResponse";
 import scheduleRoutes from "./routes/server/scheduleRoutes";
+import fileRouter from "./routes/file/fileRoutes";
 
 // Middleware
 app.use(express.json());
@@ -56,6 +57,7 @@ app.use("/api/v1/office", officeRoutes);
 app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/v1/file", fileRouter);
 
 // Global Error Handler - Must be after all routes but before server start
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
