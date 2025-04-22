@@ -12,6 +12,8 @@ interface DocumentAttributes {
   expiryDate: Date;
   issueDate: Date;
   Employee?: Employee;
+  docsURL: string;
+  isVerified: boolean;
 }
 interface DocumentCreationAttributes
   extends Optional<
@@ -22,6 +24,8 @@ interface DocumentCreationAttributes
     | "employeeId"
     | "expiryDate"
     | "issueDate"
+    | "docsURL"
+    | "isVerified"
   > {}
 
 class Document
@@ -35,6 +39,8 @@ class Document
   public documentid!: number;
   public issueDate!: Date;
   public Employee?: Employee;
+  public docsURL!: string;
+  public isVerified!: boolean;
 }
 
 Document.init(
@@ -61,7 +67,10 @@ Document.init(
       allowNull: false,
     },
     issueDate: { type: DataTypes.DATE, allowNull: false },
+    docsURL: { type: DataTypes.STRING, allowNull: false },
+    isVerified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   },
+
 
   {
     sequelize,
