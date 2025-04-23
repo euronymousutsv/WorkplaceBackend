@@ -318,10 +318,67 @@ export const updateDocument = async (req: Request, res: Response) => {
   }
 };
 
+// Get documents by employee ID
+export const getDocumentsByEmployeeId = async (req: Request, res: Response) => {
+  try {
+    const { employeeId } = req.params;
+
+    // Validate employee ID
+    if (!employeeId) {
+      throw new ApiError(400, { employeeId }, 'Employee ID is required');
+    }
+
+    // Check if employee exists
+    const employee = await Employee.findByPk(employeeId);
+    if (!employee) {
+      throw new ApiError(404, { employeeId }, `Employee not found with ID: ${employeeId}`);
+    }
+
+    // Get all documents for the employee
+    const documents = await Document.findAll({
+      where: { employeeId },
+      order: [['expiryDate', 'ASC']], // Order by expiry date ascending
+      include: [{
+        model: Employee,
+        attributes: ['id', 'firstName', 'lastName', 'email'],
+        as: 'employee'
+      }]
+    });
+
+    if (!documents.length) {
+       res.status(200).json(
+        new ApiResponse(200, [], `No documents found for employee: ${employeeId}`)
+      );return;
+    }
+
+    // Format the response with additional document status
+    const formattedDocuments = documents.map(doc => ({
+      ...doc.toJSON(),
+      status: new Date(doc.expiryDate) < new Date() ? 'expired' : 
+             moment(doc.expiryDate).diff(moment(), 'days') <= 30 ? 'expiring' : 'valid',
+      daysUntilExpiry: moment(doc.expiryDate).diff(moment(), 'days')
+    }));
+
+    res.status(200).json(
+      new ApiResponse(200, formattedDocuments, `Documents retrieved successfully for employee: ${employeeId}`)
+    );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      console.error('Error fetching documents by employee ID:', error);
+      res.status(500).json(
+        new ApiError(500, {}, 'Failed to fetch documents by employee ID')
+      );
+    }
+  }
+};
+
 export default {
   getWorkersWithExpiredDocuments,
   getWorkersWithExpiringDocuments,
   getDocumentStatistics,
   createDocument,
   updateDocument,
+  getDocumentsByEmployeeId,
 };
