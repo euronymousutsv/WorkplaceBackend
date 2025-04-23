@@ -54,7 +54,7 @@ router.get("/fetchAllUsers", verifyLoginStatus, getAllUsersInServer);
 router.get("/getEmployeeById/:id", verifyLoginStatus, getEmployeeById);
 
 // updates additional infos
-router.put(
+router.patch(
   "/updateEmployeeInfo",
   verifyLoginStatus,
   checkPermission(Role.MANAGER),

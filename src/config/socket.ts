@@ -10,7 +10,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "https://workhive.space/",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   },
 });
 
@@ -43,7 +44,7 @@ io.on("connection", (socket) => {
 
   // Sending a message to a channel
   socket.on("send_message", (data: MessageData) => {
-    console.log(data);
+    console.log("Message received: ", data);
     saveAndBroadcastMessage(data, socket);
     // io.to(data.channel).emit("receive_message", data);
   });
