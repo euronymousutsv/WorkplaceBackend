@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import { Employee } from "./employeeModel";
 import ApiError from "../utils/apiError";
 
@@ -39,69 +39,81 @@ const getEmployeeById = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export enum UpdateProfileType {
-  USERNAME = "username",
-  BASERATE = "baseRate",
-  CONTRACTHOURS = "contractHours",
-  EMPLOYEETYPE = "employeeType",
-  DEPARTMENT = "department",
-  POSITION = "position",
-  HIREDATE = "hireDate",
-}
+// export enum UpdateProfileType {
+//   USERNAME = "username",
+//   BASERATE = "baseRate",
+//   CONTRACTHOURS = "contractHours",
+//   EMPLOYEETYPE = "employeeType",
+//   DEPARTMENT = "department",
+//   POSITION = "position",
+//   HIREDATE = "hireDate",
+// }
 
 const updateEmployeeInfo = async (
   req: Request<
     {},
     {},
     {
-      editType: UpdateProfileType;
+      userName: string;
+      baseRate: string;
+      contractHours: string;
+      employeeType: EmploymentType;
+      department: string;
+      position: string;
+      hireDate: Date | string;
       employeeId: string;
-      newDetails: string;
     }
   >,
   res: Response
 ): Promise<void> => {
-  const { editType, employeeId, newDetails } = req.body;
+  const {} = req.body;
   try {
+    const {
+      employeeId,
+      userName,
+      baseRate,
+      contractHours,
+      employeeType,
+      department,
+      position,
+      hireDate,
+    } = req.body;
+
     if (!employeeId) {
       throw new ApiError(400, {}, "Employee ID is required");
     }
-
-    if (!editType) {
-      throw new ApiError(400, {}, "Edit type is required");
-    }
-
     const employeeDetails = await EmployeeDetails.findByPk(employeeId);
 
     if (!employeeDetails) {
       throw new ApiError(400, {}, "EmployeeDetails not found");
     }
 
-    switch (editType) {
-      case UpdateProfileType.USERNAME:
-        employeeDetails.username = newDetails;
-        break;
-      case UpdateProfileType.BASERATE:
-        employeeDetails.baseRate = newDetails;
-        break;
-      case UpdateProfileType.CONTRACTHOURS:
-        employeeDetails.contractHours = newDetails;
-        break;
-      case UpdateProfileType.EMPLOYEETYPE:
-        employeeDetails.employeeType = newDetails as EmploymentType;
-        break;
-      case UpdateProfileType.DEPARTMENT:
-        employeeDetails.department = newDetails;
-        break;
-      case UpdateProfileType.POSITION:
-        employeeDetails.position = newDetails;
-        break;
-      case UpdateProfileType.HIREDATE:
-        employeeDetails.hireDate = newDetails as unknown as Date;
-        break;
-      default:
-        throw new ApiError(400, {}, "Invalid edit type");
+    if (userName && userName !== employeeDetails.username) {
+      employeeDetails.username = userName;
     }
+    if (baseRate && baseRate !== employeeDetails.baseRate) {
+      employeeDetails.baseRate = baseRate;
+    }
+    if (contractHours && contractHours !== employeeDetails.contractHours) {
+      employeeDetails.contractHours = contractHours;
+    }
+    if (employeeType && employeeType !== employeeDetails.employeeType) {
+      employeeDetails.employeeType = employeeType;
+    }
+    if (department && department !== employeeDetails.department) {
+      employeeDetails.department = department;
+    }
+    if (position && position !== employeeDetails.position) {
+      employeeDetails.position = position;
+    }
+    if (hireDate) {
+      const parsedDate =
+        typeof hireDate === "string" ? new Date(hireDate) : hireDate;
+      if (parsedDate.getTime() !== employeeDetails.hireDate.getTime()) {
+        employeeDetails.hireDate = parsedDate;
+      }
+    }
+
     const saved = await employeeDetails.save();
     if (!saved) {
       throw new ApiError(400, {}, "Failed to update EmployeeDetails");
