@@ -14,7 +14,7 @@ import {
   Shift,
   ShiftStatus,
 } from "../models/roster-clockinout-shifts/shiftsModel";
-import { TimeOff } from "../models/roster-clockinout-shifts/TimeOffModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { SystemSetting } from "../models/systemSetting";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { EmployeeDetails } from "../models/employeeDetails";

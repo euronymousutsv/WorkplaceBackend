@@ -18,7 +18,7 @@ import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { EmployeeAvailability } from "../models/roster-clockinout-shifts/employeeAvailabilityModel";
 import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
-import { TimeOff } from "../models/roster-clockinout-shifts/TimeOffModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
 import { EmployeeDetails } from "../models/employeeDetails";

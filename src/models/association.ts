@@ -22,7 +22,7 @@ import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import LeaveRequest from "./leave/LeaveRequest";
 import LeaveType from "./leave/LeaveTypes";
 import TimeLog from "./roster-clockinout-shifts/TimeLogModel";
-import { TimeOff } from "./roster-clockinout-shifts/TimeOffModel";
+import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
 // Define associations AFTER models are imported
 export const associateModels = () => {
   Employee.hasOne(EmployeeDetails, {

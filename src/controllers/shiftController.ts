@@ -10,7 +10,7 @@ import { BreakPeriod } from "../models/roster-clockinout-shifts/BreakPeriodModel
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
-import { TimeOff } from "../models/roster-clockinout-shifts/TimeOffModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import ApiError from "../utils/apiError";
 import ApiResponse, { StatusCode } from "../utils/apiResponse";
 
