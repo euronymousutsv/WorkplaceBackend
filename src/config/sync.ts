@@ -18,10 +18,12 @@ import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { EmployeeAvailability } from "../models/roster-clockinout-shifts/employeeAvailabilityModel";
 import { ShiftRequest } from "../models/roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "../models/roster-clockinout-shifts/shiftsModel";
-import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/TimeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
 import { EmployeeDetails } from "../models/employeeDetails";
+import TimeLog from "../models/roster-clockinout-shifts/TimeLogModel";
+import LeaveType from "../models/leave/LeaveTypes";
 const syncDatabase = async () => {
   associateModels();
   try {
@@ -53,14 +55,15 @@ const syncDatabase = async () => {
     await Channel.sync({ alter: true });
     await JoinedServer.sync({ alter: true });
     await JoinedOffice.sync({ alter: true });
-
+    await TimeLog.sync({ alter: true });
+    TimeOff.sync({ alter: true });
+    await LeaveType.sync({ alter: true });
     await Document.sync({ alter: true });
     await BreakPeriod.sync({ alter: true });
     await ClockInOut.sync({ alter: true });
     await EmployeeAvailability.sync({ alter: true });
     await ShiftRequest.sync({ alter: true });
     await Shift.sync({ alter: true });
-    await TimeOff.sync({ alter: true });
     await PenaltyRate.sync({ alter: true });
     await SystemSetting.sync({ alter: true });
     console.log("✅ Database synced successfully!");

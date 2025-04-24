@@ -19,7 +19,10 @@ import { ClockInOut } from "./roster-clockinout-shifts/clockModel";
 import { EmployeeAvailability } from "./roster-clockinout-shifts/employeeAvailabilityModel";
 import { ShiftRequest } from "./roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "./roster-clockinout-shifts/shiftsModel";
-import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
+import LeaveRequest from "./leave/LeaveRequest";
+import LeaveType from "./leave/LeaveTypes";
+import TimeLog from "./roster-clockinout-shifts/TimeLogModel";
+import { TimeOff } from "./roster-clockinout-shifts/TimeOffModel";
 // Define associations AFTER models are imported
 export const associateModels = () => {
   Employee.hasOne(EmployeeDetails, {
@@ -61,6 +64,14 @@ export const associateModels = () => {
     foreignKey: "employeeId",
     as: "employee",
   });
+
+  // timelog model
+  TimeLog.belongsTo(Employee, { foreignKey: "employeeId" });
+  Employee.hasMany(TimeLog, { foreignKey: "employeeId" });
+
+  //leave request
+  LeaveRequest.belongsTo(Employee, { foreignKey: "employeeId" });
+  LeaveRequest.belongsTo(LeaveType, { foreignKey: "leaveTypeId" });
 
   // expo device token
   Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });

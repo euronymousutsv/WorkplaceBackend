@@ -17,7 +17,7 @@ import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
 import notificationRouter from "./routes/notificationRoutes";
 import officeRoutes from "./routes/officeRoutes";
-
+import timeLogRoutes from "./routes/timeLog/timeLogRoutes";
 import businessRoutes from "./routes/businessLogicRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import locationRoutes from "./routes/locationRoutes";
@@ -58,6 +58,7 @@ app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/timeLog", timeLogRoutes);
 
 // Global Error Handler - Must be after all routes but before server start
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

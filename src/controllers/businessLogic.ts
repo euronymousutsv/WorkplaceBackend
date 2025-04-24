@@ -14,7 +14,7 @@ import {
   Shift,
   ShiftStatus,
 } from "../models/roster-clockinout-shifts/shiftsModel";
-import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
+import { TimeOff } from "../models/roster-clockinout-shifts/TimeOffModel";
 import { SystemSetting } from "../models/systemSetting";
 import { ClockInOut } from "../models/roster-clockinout-shifts/clockModel";
 import { EmployeeDetails } from "../models/employeeDetails";
@@ -23,7 +23,7 @@ import {
   getEmployeeProfileById,
 } from "../types/EmployeeProfileViewModel";
 
-const calculateDistance = (
+export const calculateDistance = (
   lat1: number,
   lon1: number,
   lat2: number,
