@@ -1,21 +1,24 @@
 import { Model, DataTypes, Optional } from "sequelize";
 import { Employee } from "../employeeModel";
 import sequelize from "../../config/db";
+import { OfficeLocation } from "../officeLocation";
 
-enum LeaveTypeAttributes {
+export enum LeaveTypeAttributes {
   PAID_LEAVE = "paid_leave",
   UNPAID_LEAVE = "unpaid_leave",
   SICK_LEAVE = "sick_leave",
   VACATION_LEAVE = "vacation_leave",
   PARANTIAL_LEAVE = "parental_leave",
 }
-interface LeaveRequestAttributes {
+
+export interface LeaveRequestAttributes {
   id: string;
+  officeId: string;
   employeeId: string;
   startDate: Date;
   endDate: Date;
   reason?: string;
-  isApproved: boolean;
+  isApproved?: boolean;
   leaveType?: LeaveTypeAttributes;
 }
 
@@ -28,10 +31,11 @@ class LeaveRequest extends Model<
 > {
   public id!: string;
   public employeeId!: string;
+  public officeId!: string;
   public startDate!: Date;
   public endDate!: Date;
   public reason?: string;
-  public isApproved!: boolean;
+  public isApproved?: boolean;
   public leaveType?: LeaveTypeAttributes;
 }
 
@@ -49,6 +53,16 @@ LeaveRequest.init(
         model: Employee,
         key: "id",
       },
+    },
+
+    officeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: OfficeLocation,
+        key: "id",
+      },
+
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
@@ -67,7 +81,7 @@ LeaveRequest.init(
     },
     isApproved: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      allowNull: true,
     },
 
     leaveType: {
@@ -78,7 +92,7 @@ LeaveRequest.init(
         LeaveTypeAttributes.VACATION_LEAVE,
         LeaveTypeAttributes.PARANTIAL_LEAVE
       ),
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

@@ -23,6 +23,7 @@ import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
 import { EmployeeDetails } from "../models/employeeDetails";
 import TimeLog from "../models/roster-clockinout-shifts/TimeLogModel";
+import LeaveRequest from "../models/leave/LeaveRequest";
 const syncDatabase = async () => {
   associateModels();
   try {
@@ -64,6 +65,7 @@ const syncDatabase = async () => {
     await Shift.sync({ alter: true });
     await PenaltyRate.sync({ alter: true });
     await SystemSetting.sync({ alter: true });
+    await LeaveRequest.sync({ alter: true });
     console.log("✅ Database synced successfully!");
   } catch (error) {
     console.error("❌ Error syncing database:", error);

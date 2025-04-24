@@ -70,6 +70,9 @@ export const associateModels = () => {
 
   //leave request
   LeaveRequest.belongsTo(Employee, { foreignKey: "employeeId" });
+  LeaveRequest.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+  Employee.hasMany(LeaveRequest, { foreignKey: "employeeId" });
+  OfficeLocation.hasMany(LeaveRequest, { foreignKey: "officeId" });
 
   // expo device token
   Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });

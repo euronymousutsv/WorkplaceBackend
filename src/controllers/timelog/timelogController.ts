@@ -198,9 +198,12 @@ const clockOut = async (
         id: timeLogId,
       },
     });
-
     if (!loggedTime) {
       throw new ApiError(404, {}, "Time log not found");
+    }
+
+    if (loggedTime.clockOut) {
+      throw new ApiError(400, {}, "Already clocked out");
     }
 
     // find the employee
@@ -256,6 +259,7 @@ const clockOut = async (
     loggedTime.clockOut = clockOutTime;
     loggedTime.clockOutStatus = status;
     loggedTime.clockOutDiffInMin = diffMinutes;
+
     const updatedTimeLog = await loggedTime.save();
 
     if (!updatedTimeLog) {
@@ -310,6 +314,10 @@ const startBreak = async (
     const findTimeLog = await TimeLog.findByPk(timeLogId);
     if (!findTimeLog) {
       throw new ApiError(404, {}, "Time log not found");
+    }
+
+    if (findTimeLog.breakStart !== null) {
+      throw new ApiError(400, {}, "Already on break");
     }
 
     findTimeLog.breakStart = breakStartTime;
@@ -374,6 +382,10 @@ const endBreak = async (
       throw new ApiError(400, {}, "Start a break first.");
     }
 
+    if (findTimeLog.breakEnd !== null) {
+      throw new ApiError(400, {}, "Break already ended");
+    }
+
     findTimeLog.breakEnd = breakEndTime;
 
     const updatedTimeLog = await findTimeLog.save();
@@ -382,7 +394,7 @@ const endBreak = async (
       throw new ApiError(500, {}, "Failed to save break end record");
     }
 
-    res.status(201).json(new ApiResponse(201, {}, "Break ended successfully"));
+    res.status(200).json(new ApiResponse(200, {}, "Break ended successfully"));
   } catch (error) {
     if (error instanceof ApiError) {
       res
