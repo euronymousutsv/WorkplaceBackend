@@ -3,7 +3,6 @@ import sequelize from "../../config/db";
 export interface PayrollAttributes {
   id: string;
   employeeId: string;
-
   basicSalary: number;
   bonus?: number;
   deductions: number;

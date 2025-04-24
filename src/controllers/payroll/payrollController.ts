@@ -14,6 +14,7 @@ import { Op } from "sequelize";
 import Income from "../../models/Payroll/incomeModel";
 import TimeLog from "../../models/roster-clockinout-shifts/TimeLogModel";
 import { start } from "repl";
+import { Payroll } from "src/models/payrollModel";
 
 // approve an schedule hours to be paid
 const approveHours = async (
@@ -284,13 +285,14 @@ const sendApprovedHoursToPayroll = async (
       throw new ApiError(404, {}, "No approved hours found");
     }
 
+    // Group by employeeId
     const groupedByEmployee = approvedHours.reduce((acc, curr) => {
       if (!acc[curr.employeeId]) {
         acc[curr.employeeId] = [];
       }
       acc[curr.employeeId].push(curr);
       return acc;
-    }, {} as Record<string, ApprovedHoursAttributes[]>);
+    }, {} as Record<string, ApprovedHours[]>);
 
     for (const [employeeId, hoursList] of Object.entries(groupedByEmployee)) {
       const employeeDetails = await EmployeeDetails.findOne({
@@ -299,46 +301,37 @@ const sendApprovedHoursToPayroll = async (
 
       if (!employeeDetails) {
         console.warn(`Employee details not found for ID ${employeeId}`);
-        continue; // skip if details missing
+        continue;
       }
 
       const totalHours = hoursList.reduce((sum, h) => sum + h.totalHours, 0);
       const baseRate = parseFloat(employeeDetails.baseRate);
       const basicSalary = totalHours * baseRate;
 
-      const bonus = 0; // add logic if needed
-      const deductions = 0; // add logic if needed
+      const bonus = 0;
+      const deductions = 0;
       const netPay = basicSalary + bonus - deductions;
 
-      // Assuming multiple approvedHour IDs for a single employee
-      for (const [employeeId, hoursList] of Object.entries(groupedByEmployee)) {
-        const employeeDetails = await EmployeeDetails.findOne({
-          where: { employeeId },
-        });
+      // 1. Create the Payroll
+      const payroll = await Income.create({
+        employeeId,
+        basicSalary,
+        bonus,
+        deductions,
+        netPay,
+        payPeriodStart: startDateObj,
+        payPeriodEnd: endDateObj,
+      });
 
-        if (!employeeDetails) {
-          console.warn(`Employee details not found for ID ${employeeId}`);
-          continue;
+      // 2. Update all ApprovedHours to link them to this Payroll
+      await ApprovedHours.update(
+        { payrollId: payroll.id },
+        {
+          where: {
+            id: hoursList.map((h) => h.id),
+          },
         }
-
-        const totalHours = hoursList.reduce((sum, h) => sum + h.totalHours, 0);
-        const baseRate = parseFloat(employeeDetails.baseRate);
-        const basicSalary = totalHours * baseRate;
-
-        const bonus = 0;
-        const deductions = 0;
-        const netPay = basicSalary + bonus - deductions;
-
-        await Income.create({
-          employeeId,
-          basicSalary,
-          bonus,
-          deductions,
-          netPay,
-          payPeriodStart: new Date(startDate),
-          payPeriodEnd: new Date(endDate),
-        });
-      }
+      );
     }
 
     res
@@ -362,7 +355,6 @@ const sendApprovedHoursToPayroll = async (
     }
   }
 };
-
 const fetchAllPayrollForLoggedIn = async (
   req: Request<{}, {}, {}, {}>,
   res: Response
@@ -376,11 +368,12 @@ const fetchAllPayrollForLoggedIn = async (
     const employeeId = verifyAccessToken(accessToken)?.userId;
 
     const payrolls = await Income.findAll({
-      where: {
-        employeeId,
-      },
-
-      include: [{ model: ApprovedHours }],
+      where: { employeeId: employeeId },
+      include: [
+        {
+          model: ApprovedHours,
+        },
+      ],
     });
     if (payrolls.length === 0) {
       throw new ApiError(404, {}, "No payrolls found");

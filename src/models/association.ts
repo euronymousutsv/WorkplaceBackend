@@ -192,6 +192,11 @@ export const associateModels = () => {
     as: "employeeDetails",
   });
 
-  Income.belongsTo(ApprovedHours, { foreignKey: "approvedHoursId" });
-  ApprovedHours.hasOne(Payroll, { foreignKey: "approvedHoursId" });
+  Income.hasMany(ApprovedHours, {
+    foreignKey: "payrollId",
+  });
+
+  ApprovedHours.belongsTo(Income, {
+    foreignKey: "payrollId",
+  });
 };

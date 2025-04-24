@@ -59,8 +59,7 @@ const syncDatabase = async () => {
     await JoinedOffice.sync({ alter: true });
     await TimeLog.sync({ alter: true });
     await TimeOff.sync({ alter: true });
-    await Income.sync({ alter: true });
-    await ApprovedHours.sync({ alter: true });
+
     await Document.sync({ alter: true });
     await BreakPeriod.sync({ alter: true });
     await ClockInOut.sync({ alter: true });
@@ -70,6 +69,8 @@ const syncDatabase = async () => {
     await PenaltyRate.sync({ alter: true });
     await SystemSetting.sync({ alter: true });
     await LeaveRequest.sync({ alter: true });
+    await ApprovedHours.sync({ alter: true });
+    await Income.sync({ alter: true });
 
     console.log("✅ Database synced successfully!");
   } catch (error) {

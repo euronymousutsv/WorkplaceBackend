@@ -1,9 +1,11 @@
 // models/approvedHours.model.ts
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../config/db";
+import Income from "./incomeModel";
 
 export interface ApprovedHoursAttributes {
   id: string;
+  payrollId?: string;
   employeeId: string;
   officeId: string;
   date: string; // YYYY-MM-DD
@@ -28,6 +30,7 @@ class ApprovedHours
   public startTime!: string;
   public endTime!: string;
   public totalHours!: number;
+  public payrollId?: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -43,6 +46,11 @@ ApprovedHours.init(
     employeeId: {
       type: DataTypes.UUID,
       allowNull: false,
+    },
+
+    payrollId: {
+      type: DataTypes.UUID,
+      allowNull: true,
     },
     officeId: {
       type: DataTypes.UUID,
