@@ -4,12 +4,15 @@ import {
   getDocumentStatistics,
   getWorkersWithExpiredDocuments,
   getWorkersWithExpiringDocuments,
+  getDocumentsByEmployeeId,
 } from "../controllers/documentController";
 
 const router = express.Router();
 
 router.post("/", createDocument);
-router.get("docuement/statistics", getDocumentStatistics);
-router.get("documents/expiredDocument", getWorkersWithExpiredDocuments);
-router.get("documents/expiringDocuments", getWorkersWithExpiringDocuments);
+
+router.get("/statistics", getDocumentStatistics);
+router.get("/expiredDocument", getWorkersWithExpiredDocuments);
+router.get("/expiringDocuments", getWorkersWithExpiringDocuments);
+router.get("/employee/:employeeId", getDocumentsByEmployeeId);
 export default router;
