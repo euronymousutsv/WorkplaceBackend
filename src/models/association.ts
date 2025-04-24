@@ -22,6 +22,8 @@ import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import LeaveRequest from "./leave/LeaveRequest";
 import TimeLog from "./roster-clockinout-shifts/TimeLogModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
+import ApprovedHours from "./Payroll/approvedHoursModel";
+import Income from "./Payroll/incomeModel";
 // Define associations AFTER models are imported
 export const associateModels = () => {
   Employee.hasOne(EmployeeDetails, {
@@ -192,4 +194,7 @@ export const associateModels = () => {
     foreignKey: "employeeId",
     as: "employeeDetails",
   });
+
+  Income.belongsTo(ApprovedHours, { foreignKey: "approvedHoursId" });
+  ApprovedHours.hasOne(Payroll, { foreignKey: "approvedHoursId" });
 };

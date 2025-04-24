@@ -17,8 +17,10 @@ router.post("/clock-out", verifyLoginStatus, clockOut);
 router.post("/start-break", verifyLoginStatus, startBreak);
 router.post("/end-break", verifyLoginStatus, endBreak);
 router.patch("/update", verifyLoginStatus, updateTimeLog);
-router.get("/date-range", verifyLoginStatus, getTimeLogByDateRange);
-router.get(
+
+// chnage into get
+router.post("/date-range", verifyLoginStatus, getTimeLogByDateRange);
+router.post(
   "/date-range-logged-in-user",
   verifyLoginStatus,
   getTimeLogByDateRangeForEmployee
