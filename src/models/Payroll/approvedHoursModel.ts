@@ -14,6 +14,8 @@ export interface ApprovedHoursAttributes {
   totalHours: number;
   createdAt?: Date;
   updatedAt?: Date;
+  bonus?: number;
+  deductions?: number;
 }
 
 interface ApprovedHoursCreationAttributes
@@ -31,7 +33,8 @@ class ApprovedHours
   public endTime!: string;
   public totalHours!: number;
   public payrollId?: string;
-
+  public bonus?: number | 0;
+  public deductions?: number | 0;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -60,6 +63,17 @@ ApprovedHours.init(
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
+
+    bonus: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+
+    deductions: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+
     startTime: {
       type: DataTypes.TIME,
       allowNull: false,

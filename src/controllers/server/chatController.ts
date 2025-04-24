@@ -101,7 +101,11 @@ export const saveAndBroadcastMessage = async (
     channelId: channel,
     isImage,
   });
-  createNotification(author.id, `${author.name} on #${channelName}`, message);
+  await createNotification(
+    author.id,
+    `${author.name} on #${channelName}`,
+    message
+  );
   io.to(channel).emit("receive_message", data);
 };
 

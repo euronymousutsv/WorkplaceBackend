@@ -9,6 +9,7 @@ import ApiError from "../../utils/apiError";
 import ApiResponse from "../../utils/apiResponse";
 import { getAccessToken } from "../../utils/helper";
 import { verifyAccessToken } from "../../utils/jwtGenerater";
+import { createNotification } from "../notificationController";
 
 interface CreateLeaveReqPayload {
   startDate: Date;
@@ -188,6 +189,11 @@ const updateLeaveRequestDetails = async (
 
     await leaveRequest.save();
 
+    await createNotification(
+      leaveRequest.employeeId,
+      "Your Leave has some new updates. ",
+      ""
+    );
     res
       .status(200)
       .json(

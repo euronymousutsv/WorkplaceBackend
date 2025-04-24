@@ -21,6 +21,7 @@ import { RefreshToken } from "../models/refreshModel";
 import ApiError from "../utils/apiError";
 import sequelize from "../config/db";
 import { EmployeeDetails } from "../models/employeeDetails";
+import { ExpoDeviceToken } from "src/models/deviceTokenModel";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -51,15 +52,7 @@ export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
   res: Response
 ): Promise<void> => {
-  const {
-    
-    firstName,
-    lastName,
-    email,
-    password,
-    phoneNumber,
-  
-  } = req.body;
+  const { firstName, lastName, email, password, phoneNumber } = req.body;
   const t = await sequelize.transaction();
   try {
     // if any of these field is empty it will send a response of 404 error.
@@ -121,9 +114,7 @@ export const registerUser = async (
       phoneNumber: phoneNumber.toString(),
       employmentStatus: EmployeeStatus.INACTIVE,
       role: "employee",
-      
     });
- 
 
     const savedUser = (await newUser).save();
     if (!savedUser)
@@ -645,6 +636,15 @@ export const logOutUSer = async (
       throw new ApiError(StatusCode.NOT_FOUND, {}, "Token Not Found");
     }
     searchedUserToken.destroy();
+
+    const searchedDevice = await ExpoDeviceToken.findOne({
+      where: { employeeId: userId },
+    });
+
+    if (searchedDevice) {
+      searchedDevice.destroy();
+      await searchedDevice.save();
+    }
 
     res.status(200).json(new ApiResponse(200, {}, "Logged out Successfully"));
   } catch (error) {

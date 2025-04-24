@@ -23,6 +23,7 @@ interface TimeLogAttributes {
   clockOutStatus?: ClockStatus;
   clockInDiffInMin?: number;
   clockOutDiffInMin?: number;
+  isApproved?: boolean;
 }
 
 interface TimeLogCreationAttributes
@@ -37,6 +38,7 @@ interface TimeLogCreationAttributes
     | "clockOutStatus"
     | "clockInDiffInMin"
     | "clockOutDiffInMin"
+    | "isApproved"
   > {}
 
 class TimeLog extends Model<TimeLogAttributes, TimeLogCreationAttributes> {
@@ -52,6 +54,7 @@ class TimeLog extends Model<TimeLogAttributes, TimeLogCreationAttributes> {
   public clockInDiffInMin?: number;
   public clockOutDiffInMin?: number;
   public officeId?: string;
+  public isApproved?: boolean;
 }
 
 TimeLog.init(
@@ -79,6 +82,13 @@ TimeLog.init(
       type: DataTypes.DATE,
       allowNull: true,
     },
+
+    isApproved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
+
     breakStart: {
       type: DataTypes.DATE,
       allowNull: true,

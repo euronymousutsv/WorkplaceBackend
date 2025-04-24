@@ -94,8 +94,11 @@ export const createNotification = async (
   const device = await ExpoDeviceToken.findOne({
     where: { employeeId: userId },
   });
+
   if (device) {
     await sendPushNotification(device.expoPushToken, title, body);
+  } else {
+    return;
   }
 
   return newNotification;

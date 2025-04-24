@@ -15,6 +15,7 @@ import Income from "../../models/Payroll/incomeModel";
 import TimeLog from "../../models/roster-clockinout-shifts/TimeLogModel";
 import { start } from "repl";
 import { Payroll } from "src/models/payrollModel";
+import { createNotification } from "../notificationController";
 
 // approve an schedule hours to be paid
 const approveHours = async (
@@ -23,12 +24,14 @@ const approveHours = async (
     {},
     {
       timeLogId: string;
+      bonus?: number;
+      deduction?: number;
     }
   >,
   res: Response
 ): Promise<void> => {
   try {
-    const { timeLogId } = req.body;
+    const { timeLogId, bonus, deduction } = req.body;
 
     if (!timeLogId) {
       throw new ApiError(400, {}, "Time Log ID is required");
@@ -84,23 +87,28 @@ const approveHours = async (
       startTime: startDate.toTimeString().split(" ")[0],
       endTime: endDate.toTimeString().split(" ")[0],
       totalHours: totalHours,
+      bonus: bonus || 0,
+      deductions: deduction || 0,
     });
 
     if (!approvedHours) {
       throw new ApiError(500, {}, "Failed to create approved hours");
     }
 
+    searchedSchedule.isApproved = true;
+    const saved = searchedSchedule.save();
+
+    await createNotification(
+      searchEmployee.id,
+      "Hours Approved",
+      "One of your hours has been approved."
+    );
+
     res
       .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          approvedHours,
-          "Leave request created successfully"
-        )
-      );
+      .json(new ApiResponse(201, approvedHours, "Approved successfully"));
   } catch (error) {
-    console.error("Leave request error:", error);
+    console.error("Approve error:", error);
 
     if (error instanceof ApiError) {
       res.status(error.statusCode).json(error);
@@ -111,7 +119,7 @@ const approveHours = async (
           new ApiError(
             500,
             {},
-            "An error occurred while creating leave request"
+            "An error occurred while creating Approving hours"
           )
         );
     }
@@ -305,6 +313,7 @@ const sendApprovedHoursToPayroll = async (
       }
 
       const totalHours = hoursList.reduce((sum, h) => sum + h.totalHours, 0);
+
       const baseRate = parseFloat(employeeDetails.baseRate);
       const basicSalary = totalHours * baseRate;
 
@@ -355,6 +364,7 @@ const sendApprovedHoursToPayroll = async (
     }
   }
 };
+
 const fetchAllPayrollForLoggedIn = async (
   req: Request<{}, {}, {}, {}>,
   res: Response
