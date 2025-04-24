@@ -21,7 +21,7 @@ import { RefreshToken } from "../models/refreshModel";
 import ApiError from "../utils/apiError";
 import sequelize from "../config/db";
 import { EmployeeDetails } from "../models/employeeDetails";
-import { ExpoDeviceToken } from "src/models/deviceTokenModel";
+import { ExpoDeviceToken } from "../models/deviceTokenModel";
 
 // Define a interface for the request body
 interface ReqUserData {

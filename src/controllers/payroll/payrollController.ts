@@ -13,8 +13,7 @@ import JoinedOffice from "../../models/joinedOfficeModel";
 import { Op } from "sequelize";
 import Income from "../../models/Payroll/incomeModel";
 import TimeLog from "../../models/roster-clockinout-shifts/TimeLogModel";
-import { start } from "repl";
-import { Payroll } from "src/models/payrollModel";
+
 import { createNotification } from "../notificationController";
 
 // approve an schedule hours to be paid
