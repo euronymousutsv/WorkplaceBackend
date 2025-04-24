@@ -27,6 +27,7 @@ import { StatusCode } from "./utils/apiResponse";
 import scheduleRoutes from "./routes/server/scheduleRoutes";
 import fileRouter from "./routes/file/fileRoutes";
 import leaveRouter from "./routes/timeLog/leaveRoutes";
+import router from "./routes/payroll/payrollRoutes";
 
 // Middleware
 app.use(express.json());
@@ -61,6 +62,7 @@ app.use("/api/schedule", scheduleRoutes);
 app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/timeLog", timeLogRoutes);
 app.use("/api/v1/leave", leaveRouter);
+app.use("/api/v1/payroll", router);
 
 // Global Error Handler - Must be after all routes but before server start
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

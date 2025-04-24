@@ -3,7 +3,7 @@ import sequelize from "../../config/db";
 export interface PayrollAttributes {
   id: string;
   employeeId: string;
-  approvedHoursId: string;
+
   basicSalary: number;
   bonus?: number;
   deductions: number;
@@ -32,7 +32,7 @@ class Income
   public netPay!: number;
   public payPeriodStart!: Date;
   public payPeriodEnd!: Date;
-  public approvedHoursId!: string;
+
   // timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -44,11 +44,6 @@ Income.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-    },
-    approvedHoursId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      unique: true,
     },
 
     employeeId: {
