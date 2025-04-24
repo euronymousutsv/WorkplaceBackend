@@ -23,7 +23,6 @@ import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
 import { EmployeeDetails } from "../models/employeeDetails";
 import TimeLog from "../models/roster-clockinout-shifts/TimeLogModel";
-import LeaveType from "../models/leave/LeaveTypes";
 const syncDatabase = async () => {
   associateModels();
   try {
@@ -57,7 +56,6 @@ const syncDatabase = async () => {
     await JoinedOffice.sync({ alter: true });
     await TimeLog.sync({ alter: true });
     TimeOff.sync({ alter: true });
-    await LeaveType.sync({ alter: true });
     await Document.sync({ alter: true });
     await BreakPeriod.sync({ alter: true });
     await ClockInOut.sync({ alter: true });

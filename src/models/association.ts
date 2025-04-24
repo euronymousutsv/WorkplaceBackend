@@ -20,7 +20,6 @@ import { EmployeeAvailability } from "./roster-clockinout-shifts/employeeAvailab
 import { ShiftRequest } from "./roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "./roster-clockinout-shifts/shiftsModel";
 import LeaveRequest from "./leave/LeaveRequest";
-import LeaveType from "./leave/LeaveTypes";
 import TimeLog from "./roster-clockinout-shifts/TimeLogModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
 // Define associations AFTER models are imported
@@ -71,7 +70,6 @@ export const associateModels = () => {
 
   //leave request
   LeaveRequest.belongsTo(Employee, { foreignKey: "employeeId" });
-  LeaveRequest.belongsTo(LeaveType, { foreignKey: "leaveTypeId" });
 
   // expo device token
   Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });
