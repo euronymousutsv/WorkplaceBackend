@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.post("/validate-geolocation", validateGeolocationHandler);
+router.get("/validate-geolocation", validateGeolocationHandler);
 
 // GET leave balance for an employee
 router.get("/leave-balance/:employeeId", getLeaveBalance);
