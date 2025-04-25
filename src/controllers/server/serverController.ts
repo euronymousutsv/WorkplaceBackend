@@ -21,19 +21,10 @@ import { Sequelize } from "sequelize";
 import JoinedOffice from "../../models/joinedOfficeModel";
 
 const registerServer = async (
-  req: Request<
-    {},
-    {},
-    {
-      serverName: string;
-      idVerificationRequired: boolean;
-      ownerId: string;
-    }
-  >,
-  res: Response
-): Promise<void> => {
-  const { serverName, idVerificationRequired = false, ownerId } = req.body;
-
+  serverName: string,
+  idVerificationRequired: boolean = false,
+  ownerId: string
+): Promise<string> => {
   try {
     if (!serverName)
       throw new ApiError(
@@ -59,6 +50,10 @@ const registerServer = async (
       );
     }
 
+    const searchOwner = await Employee.findOne({ where: { id: ownerId } });
+    searchOwner!.role = "admin";
+    await searchOwner?.save();
+
     const inviteCode = randomUUID().slice(0, 8);
 
     const newServer = await Server.create({
@@ -71,28 +66,16 @@ const registerServer = async (
     if (!newServer)
       throw new ApiError(StatusCode.BAD_REQUEST, {}, "Unable to create Server");
 
-    res
-      .status(201)
-      .json(
-        new ApiResponse(
-          StatusCode.CREATED,
-          newServer.dataValues,
-          "Server Regestration successfull!"
-        )
-      );
+    return newServer.id;
   } catch (error) {
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json(error);
+      throw error;
     } else {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json(
-          new ApiError(
-            StatusCode.INTERNAL_SERVER_ERROR,
-            {},
-            "Something went wrong."
-          )
-        );
+      throw new ApiError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        {},
+        "Something went wrong."
+      );
     }
   }
 };

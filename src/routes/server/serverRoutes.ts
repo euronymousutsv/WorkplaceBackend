@@ -30,7 +30,7 @@ import {
 const router = express.Router();
 
 // Server Routes
-router.post("/register", verifyLoginStatus, registerServer);
+// router.post("/register", verifyLoginStatus, registerServer);
 
 router.post("/search", searchServer);
 router.get("/getLoggedInUserServer/", verifyLoginStatus, getLoggedInUserServer);

@@ -20,12 +20,16 @@ import NodeCache from "node-cache";
 import { RefreshToken } from "../models/refreshModel";
 import ApiError from "../utils/apiError";
 import sequelize from "../config/db";
-import { EmployeeDetails } from "../models/employeeDetails";
 import { ExpoDeviceToken } from "../models/deviceTokenModel";
+import { registerServer } from "./server/serverController";
+import JoinedServer from "../models/joinedServerModel";
+import Server from "../models/serverModel";
 
 // Define a interface for the request body
 interface ReqUserData {
   firstName: string;
+  serverName?: string;
+  inviteLink?: string;
   lastName: string;
   email: string;
   password: string;
@@ -52,7 +56,15 @@ export const registerUser = async (
   req: Request<{}, {}, ReqUserData>,
   res: Response
 ): Promise<void> => {
-  const { firstName, lastName, email, password, phoneNumber } = req.body;
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    phoneNumber,
+    serverName,
+    inviteLink,
+  } = req.body;
   const t = await sequelize.transaction();
   try {
     // if any of these field is empty it will send a response of 404 error.
@@ -116,13 +128,43 @@ export const registerUser = async (
       role: "employee",
     });
 
-    const savedUser = (await newUser).save();
+    const savedUser = newUser.save();
     if (!savedUser)
       throw new ApiError(
         StatusCode.INTERNAL_SERVER_ERROR,
         {},
         "Failed to register User"
       );
+
+    if (serverName) {
+      const newServerId = await registerServer(serverName, false, newUser.id);
+      const joinServer = await JoinedServer.create({
+        serverId: newServerId,
+        id: newUser.id,
+      });
+      await joinServer.save();
+    }
+
+    if (inviteLink) {
+      const server = await Server.findOne({
+        where: { inviteLink: inviteLink },
+      });
+
+      if (!server) {
+        throw new ApiError(
+          StatusCode.NOT_FOUND,
+          {},
+          "Server with this invite link not found"
+        );
+      }
+
+      const joinServer = await JoinedServer.create({
+        serverId: server.id,
+        id: newUser.id,
+      });
+
+      await joinServer.save();
+    }
   } catch (error) {
     if (error instanceof ApiError)
       res
@@ -147,6 +189,8 @@ export const registerUser = async (
       lastName,
       email,
       phoneNumber,
+      serverName,
+      inviteLink,
     })
   );
 };
