@@ -126,7 +126,7 @@ export const saveAndBroadcastMessage = async (
     if (deviceToken) {
       await createNotification(
         newUserId,
-        `${newUserId} on #${searchChannel?.name}`,
+        `${author.name} on #${searchChannel?.name}`,
         message
       );
     }
