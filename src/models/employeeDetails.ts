@@ -132,7 +132,18 @@ EmployeeDetails.init(
   }
 );
 
-// Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
-// Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
-// Employee.hasMany(Payroll, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+EmployeeDetails.beforeValidate((employeeDetail: EmployeeDetails) => {
+  const convertToNumberOrNull = (value: any) => {
+    if (value === "" || value === undefined) return null;
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num;
+  };
+
+  employeeDetail.baseRate =
+    convertToNumberOrNull(employeeDetail.baseRate)?.toString() || undefined;
+  employeeDetail.contractHours =
+    convertToNumberOrNull(employeeDetail.contractHours)?.toString() ||
+    undefined;
+});
+
 export { EmployeeDetails, EmployeeDetailsAttributes };
