@@ -46,7 +46,7 @@ export const getAllEmployeeProfiles = async (): Promise<
     details: emp.employeeDetails
       ? {
           username: emp.employeeDetails.username,
-          baseRate: emp.employeeDetails.baseRate,
+          baseRate: emp.employeeDetails.baseRate || "",
           contractHours: emp.employeeDetails.contractHours,
           employeeType: emp.employeeDetails.employeeType,
           department: emp.employeeDetails.department,
@@ -86,8 +86,8 @@ export const getEmployeeProfileById = async (
     details: employee.employeeDetails
       ? {
           username: employee.employeeDetails.username,
-          baseRate: employee.employeeDetails.baseRate,
-          contractHours: employee.employeeDetails.contractHours,
+          baseRate: employee.employeeDetails.baseRate || "",
+          contractHours: employee.employeeDetails.contractHours || "",
           employeeType: employee.employeeDetails.employeeType,
           department: employee.employeeDetails.department,
           position: employee.employeeDetails.position,

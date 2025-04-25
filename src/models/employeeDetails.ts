@@ -6,7 +6,7 @@ interface EmployeeDetailsAttributes {
   id: string;
   employeeId: string;
   username: string;
-  baseRate: string;
+  baseRate?: string;
   contractHours?: string;
   employeeType: EmploymentType;
   department: string;
@@ -31,7 +31,7 @@ class EmployeeDetails
   public id!: string;
   public employeeId!: string;
   public username!: string;
-  public baseRate!: string;
+  public baseRate?: string;
   public contractHours?: string;
   public employeeType!: EmploymentType;
   public department!: string;
@@ -105,7 +105,7 @@ EmployeeDetails.init(
     },
     baseRate: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      allowNull: true,
     },
     contractHours: {
       type: DataTypes.DECIMAL(10, 2),
