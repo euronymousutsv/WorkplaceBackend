@@ -338,11 +338,7 @@ export const getDocumentsByEmployeeId = async (req: Request, res: Response) => {
     const documents = await Document.findAll({
       where: { employeeId },
       order: [['expiryDate', 'ASC']], // Order by expiry date ascending
-      include: [{
-        model: Employee,
-        attributes: ['id', 'firstName', 'lastName', 'email'],
-        as: 'employee'
-      }]
+     
     });
 
     if (!documents.length) {

@@ -75,7 +75,7 @@ export const validateGeolocationHandler = async (
     res.status(200).json({ valid: isValid });
   } catch (error) {
     console.error("validateGeolocationHandler error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error, Validation failed" });
   }
 };
 

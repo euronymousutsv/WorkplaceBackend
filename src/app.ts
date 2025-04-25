@@ -45,10 +45,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send("<h1>WorkHive Api is working </h1>");
 });
+app.use("/api/businessLogic", businessRoutes);
 app.use("/api/system-settings", systemSettingRoutes);
 app.use("/api/locations", locationRoutes);
 app.use("/api/shift", shiftRoutes);
-app.use("/api/businessLogic", businessRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/roster", rosterRoutes);
 app.use("/api/v1/server", serverRouter);
