@@ -1,0 +1,47 @@
+config:
+  target: "http://workerapi-env.eba-srhtzvap.ap-southeast-2.elasticbeanstalk.com"
+  phases:
+    - duration: 60
+      arrivalRate: 10 
+    - duration: 60
+      arrivalRate: 20
+    - duration: 30
+      arrivalRate: 10
+  processor: "./authProcessor.js"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Login → Clock In → Clock Out → Get Roster"
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "sabin@gmail.com"
+            password: "Abcde1@345"
+          capture:
+            - json: "$.data.accessToken"
+              as: "authToken"
+      - think:  2
+      - get:
+          url: "/api/businessLogic/validate-geolocation"
+          json:
+            locationId: "cbd123e4-5678-90ab-cdef-1234567890ab"
+            latitude: -33.8688
+            longitude: 151.2093
+          capture:
+            - json: "$.valid"
+              as: "valid"
+      - think: 2
+      - get:
+          url: "/api/businessLogic/weekly-roster"
+         
+      - think: 2
+      - get:
+          url: "/api/shift/penalty-rates"
+        
+      - think: 1
+      - get:
+          url: "/api/document/employee/2eeec37d-e2f5-42c7-8cf5-9d856efced03"
+    
