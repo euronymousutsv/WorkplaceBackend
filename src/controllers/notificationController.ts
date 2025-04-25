@@ -156,6 +156,62 @@ const fetchAllNotifications = async (
   }
 };
 
+// clear all notifications for an employee
+const clearAllNotifications = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken(req);
+    if (!accessToken)
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Access token not found.");
+
+    const userId = verifyAccessToken(accessToken)?.userId;
+
+    // Validate userId
+    if (!userId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, {}, "Missing userId.");
+    }
+
+    console.log("userId", userId);
+    // Fetch all notifications for the user from the database
+    const notifications = await Notification.findAll({
+      where: {
+        employeeId: userId,
+      },
+      order: [["createdAt", "DESC"]], // order by init_time (latest first)
+    });
+
+    await Promise.all(
+      notifications.map((notification) => notification.destroy())
+    );
+    // Respond with a success message
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          StatusCode.OK,
+          { message: "All notifications cleared successfully." },
+          "Notifications cleared successfully"
+        )
+      );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(error);
+    } else {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json(
+          new ApiError(
+            StatusCode.INTERNAL_SERVER_ERROR,
+            {},
+            "Something went wrong."
+          )
+        );
+    }
+  }
+};
+
 // api's
 // expo push notification
 // register a device for push notifications
@@ -612,4 +668,5 @@ export {
   sendNotificationToServer,
   fetchAllNotifications,
   sendNotificationToOffice,
+  clearAllNotifications,
 };

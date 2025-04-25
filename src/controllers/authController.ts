@@ -24,6 +24,7 @@ import { ExpoDeviceToken } from "../models/deviceTokenModel";
 import { registerServer } from "./server/serverController";
 import JoinedServer from "../models/joinedServerModel";
 import Server from "../models/serverModel";
+import { EmployeeDetails, EmploymentType } from "../models/employeeDetails";
 
 // Define a interface for the request body
 interface ReqUserData {
@@ -128,13 +129,27 @@ export const registerUser = async (
       role: "employee",
     });
 
-    const savedUser = newUser.save();
+    const savedUser = await newUser.save();
+    const userDetails = await EmployeeDetails.create({
+      employeeId: savedUser.id,
+      baseRate: req.body.baseRate,
+      contractHours: req.body.baseRate,
+      employeeType: EmploymentType.FULL_TIME,
+      department: "",
+      position: "",
+      username: savedUser.firstName
+        ? savedUser.firstName + " " + savedUser.lastName
+        : savedUser.lastName || "",
+      hireDate: new Date(),
+    });
     if (!savedUser)
       throw new ApiError(
         StatusCode.INTERNAL_SERVER_ERROR,
         {},
         "Failed to register User"
       );
+
+    userDetails.save();
 
     if (serverName) {
       const newServerId = await registerServer(serverName, false, newUser.id);

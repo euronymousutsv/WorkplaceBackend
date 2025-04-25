@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { verifyLoginStatus } from "../middleware/verifyLoginMiddleware";
 import {
+  clearAllNotifications,
   fetchAllNotifications,
   registerDevice,
   sendNotificationToEmployee,
@@ -33,5 +34,8 @@ router.route("/sendNotificationToOffice").post(
 router
   .route("/fetchAllNotifications")
   .get(verifyLoginStatus, fetchAllNotifications);
+router
+  .route("/clearAllNotifications")
+  .delete(verifyLoginStatus, clearAllNotifications);
 
 export default router;
