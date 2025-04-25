@@ -5,6 +5,9 @@ import Chat from "../../models/chatModel";
 import { Employee } from "../../models/employeeModel";
 import { io, MessageData } from "../../config/socket";
 import { createNotification } from "../notificationController";
+import { ExpoDeviceToken } from "../../models/deviceTokenModel";
+import Channel from "../../models/channelModel";
+import JoinedOffice from "../../models/joinedOfficeModel";
 
 // send a message to a channel
 const sendMessage = async (
@@ -43,6 +46,31 @@ const sendMessage = async (
       );
 
     const savedMessage = await Chat.create({ userId, message, channelId });
+
+    const searchChannel = await Channel.findOne({
+      where: { id: channelId },
+    });
+
+    const officeId = searchChannel?.officeId;
+
+    const allUsersInOffice = await JoinedOffice.findAll({
+      where: { officeId },
+    });
+
+    allUsersInOffice.map(async (user) => {
+      const userId = user.id;
+      const deviceToken = await ExpoDeviceToken.findOne({
+        where: { employeeId: userId },
+      });
+
+      if (deviceToken) {
+        await createNotification(
+          userId,
+          `${userId} on #${searchChannel?.name}`,
+          message
+        );
+      }
+    });
 
     io.to(channelId).emit("newMessage", savedMessage);
 
@@ -101,16 +129,9 @@ export const saveAndBroadcastMessage = async (
     channelId: channel,
     isImage,
   });
-  await createNotification(
-    author.id,
-    `${author.name} on #${channelName}`,
-    message
-  );
+
   io.to(channel).emit("receive_message", data);
 };
-
-// update previously sent message in a channel
-// todo :: fix an error where if the passed id is not a uuid, it shows general error. Wheras it needs to send that it is not uuid
 
 const updateMessage = async (
   req: Request<
