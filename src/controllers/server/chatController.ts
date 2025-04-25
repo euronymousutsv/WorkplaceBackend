@@ -47,31 +47,6 @@ const sendMessage = async (
 
     const savedMessage = await Chat.create({ userId, message, channelId });
 
-    const searchChannel = await Channel.findOne({
-      where: { id: channelId },
-    });
-
-    const officeId = searchChannel?.officeId;
-
-    const allUsersInOffice = await JoinedOffice.findAll({
-      where: { officeId },
-    });
-
-    allUsersInOffice.map(async (user) => {
-      const userId = user.id;
-      const deviceToken = await ExpoDeviceToken.findOne({
-        where: { employeeId: userId },
-      });
-
-      if (deviceToken) {
-        await createNotification(
-          userId,
-          `${userId} on #${searchChannel?.name}`,
-          message
-        );
-      }
-    });
-
     io.to(channelId).emit("newMessage", savedMessage);
 
     res
@@ -128,6 +103,31 @@ export const saveAndBroadcastMessage = async (
     message,
     channelId: channel,
     isImage,
+  });
+
+  const searchChannel = await Channel.findOne({
+    where: { id: channel },
+  });
+
+  const officeId = searchChannel?.officeId;
+
+  const allUsersInOffice = await JoinedOffice.findAll({
+    where: { officeId },
+  });
+
+  allUsersInOffice.map(async (user) => {
+    const newUserId = user.id;
+    const deviceToken = await ExpoDeviceToken.findOne({
+      where: { employeeId: newUserId },
+    });
+
+    if (deviceToken) {
+      await createNotification(
+        newUserId,
+        `${newUserId} on #${searchChannel?.name}`,
+        message
+      );
+    }
   });
 
   io.to(channel).emit("receive_message", data);
