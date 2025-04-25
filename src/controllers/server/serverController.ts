@@ -16,7 +16,7 @@ import {
 import { Employee, EmployeeStatus } from "../../models/employeeModel";
 import { Roles } from "../../models/channelModel";
 import sequelize from "../../config/db";
-import { join } from "path";
+
 import { Sequelize } from "sequelize";
 import JoinedOffice from "../../models/joinedOfficeModel";
 
@@ -529,7 +529,17 @@ export const leaveServer = async (
         "An owner cannot leave a server."
       );
 
-    await searchedUser.destroy();
+    const joinedServer = await JoinedServer.findOne({
+      where: { id: userId },
+    });
+    if (!joinedServer)
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        {},
+        "User not found in any server"
+      );
+
+    await joinedServer.destroy();
     res
       .status(201)
       .json(

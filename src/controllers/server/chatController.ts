@@ -114,9 +114,11 @@ export const saveAndBroadcastMessage = async (
   const allUsersInOffice = await JoinedOffice.findAll({
     where: { officeId },
   });
-
+  io.to(channel).emit("receive_message", data);
   allUsersInOffice.map(async (user) => {
     const newUserId = user.id;
+
+    if (author.id === newUserId) return;
     const deviceToken = await ExpoDeviceToken.findOne({
       where: { employeeId: newUserId },
     });
@@ -129,8 +131,6 @@ export const saveAndBroadcastMessage = async (
       );
     }
   });
-
-  io.to(channel).emit("receive_message", data);
 };
 
 const updateMessage = async (
