@@ -22,6 +22,10 @@ import { TimeOff } from "../models/roster-clockinout-shifts/timeOffModel";
 import { PenaltyRate } from "../models/penaltyRates";
 import SystemSetting from "../models/systemSettingModel";
 import { EmployeeDetails } from "../models/employeeDetails";
+import TimeLog from "../models/roster-clockinout-shifts/TimeLogModel";
+import LeaveRequest from "../models/leave/LeaveRequest";
+import Income from "../models/Payroll/incomeModel";
+import ApprovedHours from "../models/Payroll/approvedHoursModel";
 const syncDatabase = async () => {
   associateModels();
   try {
@@ -53,6 +57,8 @@ const syncDatabase = async () => {
     await Channel.sync({ alter: true });
     await JoinedServer.sync({ alter: true });
     await JoinedOffice.sync({ alter: true });
+    await TimeLog.sync({ alter: true });
+    await TimeOff.sync({ alter: true });
 
     await Document.sync({ alter: true });
     await BreakPeriod.sync({ alter: true });
@@ -60,9 +66,12 @@ const syncDatabase = async () => {
     await EmployeeAvailability.sync({ alter: true });
     await ShiftRequest.sync({ alter: true });
     await Shift.sync({ alter: true });
-    await TimeOff.sync({ alter: true });
     await PenaltyRate.sync({ alter: true });
     await SystemSetting.sync({ alter: true });
+    await LeaveRequest.sync({ alter: true });
+    await ApprovedHours.sync({ alter: true });
+    await Income.sync({ alter: true });
+
     console.log("✅ Database synced successfully!");
   } catch (error) {
     console.error("❌ Error syncing database:", error);

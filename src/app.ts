@@ -17,7 +17,7 @@ import clockRoute from "./routes/clockStatusRoutes";
 import documentRoutes from "./routes/documentRoutes";
 import notificationRouter from "./routes/notificationRoutes";
 import officeRoutes from "./routes/officeRoutes";
-
+import timeLogRoutes from "./routes/timeLog/timeLogRoutes";
 import businessRoutes from "./routes/businessLogicRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import locationRoutes from "./routes/locationRoutes";
@@ -26,6 +26,8 @@ import ApiError from "./utils/apiError";
 import { StatusCode } from "./utils/apiResponse";
 import scheduleRoutes from "./routes/server/scheduleRoutes";
 import fileRouter from "./routes/file/fileRoutes";
+import leaveRouter from "./routes/timeLog/leaveRoutes";
+import router from "./routes/payroll/payrollRoutes";
 
 // Middleware
 app.use(express.json());
@@ -58,6 +60,9 @@ app.use("api/clock", clockRoute);
 app.use("/api/document", documentRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/v1/file", fileRouter);
+app.use("/api/v1/timeLog", timeLogRoutes);
+app.use("/api/v1/leave", leaveRouter);
+app.use("/api/v1/payroll", router);
 
 // Global Error Handler - Must be after all routes but before server start
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

@@ -13,13 +13,16 @@ import JoinedServer from "./joinedServerModel";
 import { ExpoDeviceToken } from "./deviceTokenModel";
 import Notification from "./Notifications";
 import JoinedOffice from "./joinedOfficeModel";
-
 import { BreakPeriod } from "./roster-clockinout-shifts/BreakPeriodModel";
 import { ClockInOut } from "./roster-clockinout-shifts/clockModel";
 import { EmployeeAvailability } from "./roster-clockinout-shifts/employeeAvailabilityModel";
 import { ShiftRequest } from "./roster-clockinout-shifts/shiftRequestModel";
 import { Shift } from "./roster-clockinout-shifts/shiftsModel";
+import LeaveRequest from "./leave/LeaveRequest";
+import TimeLog from "./roster-clockinout-shifts/TimeLogModel";
 import { TimeOff } from "./roster-clockinout-shifts/timeOffModel";
+import ApprovedHours from "./Payroll/approvedHoursModel";
+import Income from "./Payroll/incomeModel";
 // Define associations AFTER models are imported
 export const associateModels = () => {
   Employee.hasOne(EmployeeDetails, {
@@ -41,7 +44,6 @@ export const associateModels = () => {
     foreignKey: "officeId",
     as: "officeLocation",
   });
-
   // joined server
   Employee.hasOne(JoinedServer, { foreignKey: "id", onDelete: "CASCADE" });
   JoinedServer.belongsTo(Employee, { foreignKey: "id" });
@@ -50,7 +52,6 @@ export const associateModels = () => {
     foreignKey: "id",
     onDelete: "CASCADE",
   });
-
   JoinedOffice.belongsTo(Employee, {
     foreignKey: "id", // `id` in JoinedOffice refers to Employee's id
     targetKey: "id",
@@ -61,6 +62,16 @@ export const associateModels = () => {
     foreignKey: "employeeId",
     as: "employee",
   });
+
+  // timelog model
+  TimeLog.belongsTo(Employee, { foreignKey: "employeeId" });
+  Employee.hasMany(TimeLog, { foreignKey: "employeeId" });
+
+  //leave request
+  LeaveRequest.belongsTo(Employee, { foreignKey: "employeeId" });
+  LeaveRequest.belongsTo(OfficeLocation, { foreignKey: "officeId" });
+  Employee.hasMany(LeaveRequest, { foreignKey: "employeeId" });
+  OfficeLocation.hasMany(LeaveRequest, { foreignKey: "officeId" });
 
   // expo device token
   Employee.hasOne(ExpoDeviceToken, { foreignKey: "id", onDelete: "CASCADE" });
@@ -179,5 +190,13 @@ export const associateModels = () => {
   Employee.hasOne(EmployeeDetails, {
     foreignKey: "employeeId",
     as: "employeeDetails",
+  });
+
+  Income.hasMany(ApprovedHours, {
+    foreignKey: "payrollId",
+  });
+
+  ApprovedHours.belongsTo(Income, {
+    foreignKey: "payrollId",
   });
 };

@@ -1,12 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import ApiError from "../../utils/apiError";
 import ApiResponse, { StatusCode } from "../../utils/apiResponse";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-} from "../../utils/jwtGenerater.js";
+import { verifyAccessToken } from "../../utils/jwtGenerater.js";
 
 export const verifyLoginStatus = async (
   req: Request,
