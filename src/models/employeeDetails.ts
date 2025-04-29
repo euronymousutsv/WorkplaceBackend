@@ -6,7 +6,7 @@ interface EmployeeDetailsAttributes {
   id: string;
   employeeId: string;
   username: string;
-  baseRate: string;
+  baseRate?: string;
   contractHours?: string;
   employeeType: EmploymentType;
   department: string;
@@ -31,7 +31,7 @@ class EmployeeDetails
   public id!: string;
   public employeeId!: string;
   public username!: string;
-  public baseRate!: string;
+  public baseRate?: string;
   public contractHours?: string;
   public employeeType!: EmploymentType;
   public department!: string;
@@ -105,7 +105,7 @@ EmployeeDetails.init(
     },
     baseRate: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      allowNull: true,
     },
     contractHours: {
       type: DataTypes.DECIMAL(10, 2),
@@ -132,7 +132,18 @@ EmployeeDetails.init(
   }
 );
 
-// Employee.hasMany(Roster, { foreignKey: 'employeeId', onDelete:"CASCADE" });
-// Employee.hasMany(AttendanceEvent, { foreignKey: 'employeeId',onDelete:"CASCADE" });
-// Employee.hasMany(Payroll, { foreignKey: 'employeeId',onDelete:"CASCADE" });
+EmployeeDetails.beforeValidate((employeeDetail: EmployeeDetails) => {
+  const convertToNumberOrNull = (value: any) => {
+    if (value === "" || value === undefined) return null;
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num;
+  };
+
+  employeeDetail.baseRate =
+    convertToNumberOrNull(employeeDetail.baseRate)?.toString() || undefined;
+  employeeDetail.contractHours =
+    convertToNumberOrNull(employeeDetail.contractHours)?.toString() ||
+    undefined;
+});
+
 export { EmployeeDetails, EmployeeDetailsAttributes };

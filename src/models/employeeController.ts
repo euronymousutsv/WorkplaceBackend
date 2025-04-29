@@ -82,7 +82,10 @@ const updateEmployeeInfo = async (
     if (!employeeId) {
       throw new ApiError(400, {}, "Employee ID is required");
     }
-    const employeeDetails = await EmployeeDetails.findByPk(employeeId);
+    console.log("employeeId", employeeId);
+    const employeeDetails = await EmployeeDetails.findOne({
+      where: { employeeId: employeeId },
+    });
 
     if (!employeeDetails) {
       throw new ApiError(400, {}, "EmployeeDetails not found");

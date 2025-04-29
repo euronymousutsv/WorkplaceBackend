@@ -313,7 +313,7 @@ const sendApprovedHoursToPayroll = async (
 
       const totalHours = hoursList.reduce((sum, h) => sum + h.totalHours, 0);
 
-      const baseRate = parseFloat(employeeDetails.baseRate);
+      const baseRate = parseFloat(employeeDetails.baseRate || "0");
       const basicSalary = totalHours * baseRate;
 
       const bonus = 0;

@@ -11,7 +11,6 @@ import {
 const router = express.Router();
 
 router.post("/addDocument", createDocument);
-
 router.get("/statistics", getDocumentStatistics);
 router.get("/expiredDocument", getWorkersWithExpiredDocuments);
 router.get("/expiringDocuments", getWorkersWithExpiringDocuments);

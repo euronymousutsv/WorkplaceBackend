@@ -132,8 +132,8 @@ export const registerUser = async (
     const savedUser = await newUser.save();
     const userDetails = await EmployeeDetails.create({
       employeeId: savedUser.id,
-      baseRate: req.body.baseRate,
-      contractHours: req.body.baseRate,
+      baseRate: req.body.baseRate || "",
+      contractHours: req.body.contractHours || "",
       employeeType: EmploymentType.FULL_TIME,
       department: "",
       position: "",
